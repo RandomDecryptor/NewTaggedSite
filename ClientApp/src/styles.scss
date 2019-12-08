@@ -1,0 +1,11 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* NOT WORKING! To make "Pick a tag name" placeholder when goes to the top of the field show complete instead of a little cut on the left!
+span.mat-form-field-label-wrapper {
+  overflow: auto !important;
+}
+
+ */

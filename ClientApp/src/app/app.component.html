@@ -1,0 +1,196 @@
+<div class="header">
+  <a routerLink="/home">Home</a>
+  <a routerLink="/info">Info</a>
+</div>
+
+<mat-divider></mat-divider>
+
+<mat-grid-list cols="1" rowHeight="6em">
+  <mat-grid-tile>
+    <form class="example-form">
+      <mat-form-field class="example-full-width">
+        <input type="text" id="testCampo" maxlength="51" matInput placeholder="Pick a Tag Name" aria-label="Selected Tag Name" [formControl]="myControl" [matAutocomplete]="autoTagName" >
+        <mat-autocomplete autoActiveFirstOption #autoTagName="matAutocomplete" [displayWith]="displayFn">
+          <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (onSelectionChange)="selectionChanged($event, option[1])" >{{option[0]}}</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </form>
+  </mat-grid-tile>
+
+</mat-grid-list>
+
+
+<div class="section section--tag">
+  <h2>Tag Address</h2>
+  <!-- NGX SELECT: Autocomplete -->
+  <span>Tag'em (all) </span><span>Create (new) </span><span>Remov'em (your)</span>
+  <br>
+  <label for="">Tag Name</label>
+  <input type="text" placeholder="Tag name" value="SCAMMER">
+  <br>
+  <label for="">Tag Info (tag address)</label>
+  <input type="text" placeholder="Tag address" value="0xaf4835d5f3b72b3d67d40affcadd55392cb1a0cc" disabled>
+  <br>
+  <label for="">Address to Tag *</label>
+  <input type="text" placeholder="Address to tag" value="0xaf4835d5f3b72b3d67d40affcadd55392cb1a0cc">
+  <br>
+  <label for="">Cost to tag (Eth)</label>
+  <input type="text" placeholder="Cost to tag" value="0.005" disabled>
+  <br>
+  <button>Tag Someone</button>
+</div>
+
+<div class="section section--tag-create">
+  <h2>Tag Create</h2>
+  <!-- NGX SELECT: Autocomplete -->
+  <label for="">Tag Name *</label>
+  <input type="text" placeholder="Tag name" value="SCAMMER">
+  <br>
+  <label for="">Symbol</label>
+  <input type="text" placeholder="Symbol" value="SCAMS">
+  <br>
+  <label for="">Cost to create tag (Eth)</label>
+  <input type="text" placeholder="cost" value="0.05" disabled>
+  <br>
+  <button>Create Tag</button>
+</div>
+
+<div class="section section--tag-remove">
+  <h2>Tag Remove</h2>
+  <!-- NGX SELECT: Autocomplete -->
+  <label for="">Tag Name *</label>
+  <input type="text" placeholder="Tag name" value="SCAMMER">
+  <br>
+  <label for="">Tag Info (tag address example)</label>
+  <input type="text" placeholder="Tag address" value="0xaf4835d5f3b72b3d67d40affcadd55392cb1a0cc" disabled>
+  <br>
+  <label for="">Address to remove tag *</label>
+  <input type="text" placeholder="Tag address" value="0xaf4835d5f3b72b3d67d40affcadd55392cb1a0cc">
+  <br>
+  <button>Remove Tag</button>
+</div>
+
+<!-- <div class="section section--tag-check">
+  <h2>TAG CHECK (all)</h2>
+  <select name="" id="">
+    <option value="SCAMMER">SCAMMER</option>
+    <option value="TRUSTED">TRUSTED</option>
+    <option value="TAGNAME1">TAGNAME1</option>
+    <option value="TAGNAME2">TAGNAME2</option>
+    <option value="TAGNAME3">TAGNAME3</option>
+    <option value="TAGNAME4">TAGNAME4</option>
+    <option value="TAGNAME5">TAGNAME5</option>
+    <option value="TAGNAME6">TAGNAME6</option>
+  </select>
+</div> -->
+
+
+
+
+
+
+
+
+<div class="section section--tag-info">
+  <h2>TAGS CREATED BY YOU (yours)</h2>
+  <table id="tagsCreatedByUserTable">
+    <tbody>
+      <tr>
+        <th>Tag Name</th>
+        <th>Owner Balance</th>
+        <th>Total Taggings</th>
+        <th>Transfer</th>
+      </tr>
+      <tr>
+        <td class="tag-table__cell-tagname">TESTNEW</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">100</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">0</td>
+        <td class="tag-table__cell-button tag-table__cell-button--action"><button class="transferButton" onclick="javascript: beginTransferTag(1);">Transfer
+            Tag</button></td>
+      </tr>
+      <tr>
+        <td class="tag-table__cell-tagname">RAMBO TAG</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">100</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">0</td>
+        <td class="tag-table__cell-button tag-table__cell-button--action"><button class="transferButton" onclick="javascript: beginTransferTag(2);">Transfer
+            Tag</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Transfer tag</h2>
+  <label for="">Tag Info (tag address example)</label>
+  <input type="text" placeholder="Tag Name" value="TAG1" disabled>
+  <input type="text" placeholder="Tag address" value="0xaf4835d5f3b72b3d67d40affcadd55392cb1a0cc" disabled>
+  <br>
+  <label for="">Address to transfer tag ownership *:</label>
+  <input type="text" placeholder="transfer to address" value="0xaf4835d5f3b72b3d67d40affcadd55392cb1a0cc">
+  <br>
+  <label for="">Cost</label>
+  <input type="text" value="0.005" disabled>
+  <br>
+  <button>Transfer Tag</button>
+
+  <h2>Gains (graph)</h2>
+  <label for="">Change to receive (Eth):</label>
+  <input type="text" value="0" disabled>
+  <br>
+  <label for="">Gains gotten (Eth):</label>
+  <input type="text" value="0.5" disabled>
+</div>
+
+
+
+
+<div class="section section--top-10">
+  <h2>TOP 10</h2>
+  <table id="top10TagsTable">
+    <tbody>
+      <tr>
+        <th>Tag Name</th>
+        <th>Total Taggings</th>
+        <th>&nbsp;</th>
+      </tr>
+      <tr>
+        <td class="tag-table__cell-tagname">&nbsp;&nbsp;1. <a href="#" onclick="javascript: selectedTagFromTop10(1); return false;">TEST1</a></td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">1</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">(1)</td>
+      </tr>
+      <tr>
+        <td class="tag-table__cell-tagname">&nbsp;&nbsp;2. <a href="#" onclick="javascript: selectedTagFromTop10(2); return false;">TESTNEW</a></td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">0</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered"></td>
+      </tr>
+      <tr>
+        <td class="tag-table__cell-tagname">&nbsp;&nbsp;3. <a href="#" onclick="javascript: selectedTagFromTop10(3); return false;">RAMBO TAG</a></td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered">0</td>
+        <td class="tag-table__cell-number tag-table__cell-number--centered"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section section--how">
+  <h2>HOW IT WORKS</h2>
+  infographics
+  video
+</div>
+
+<div class="section section--about">
+  <h2>ABOUT ETH</h2>
+  <p>Created in 2015, rocking the then simple world of cryptocurrencies, Ethereum brings programmable money to the center stage. The first to make available Turing complete smart contracts, it allows its users to build their own currencies, financial systems and other applications.</p>
+  <p>With this, and the support of a big community (developers, tool makers, financial institutions, etc.), a lot of tools were developed to allow normal users the ability to check their wallets, interact with contracts and make their own contracts. These tools mostly support also the ERC20 Token Standard, created to make available a standard for interaction with Tokens created on the Ethereum network.</p>
+  <h2>ABOUT tag.gd</h2>
+  <p>Tag.gd will allow common users to tag addresses of other people (like exchanges, dangerous addresses, known scammers, invalid / abandonned contracts, trusted addresses / contracts, etc.). Using known ethereum sites like etherscan.io and ethplorer.io tagged users will be able to see in their addresses when they have been tagged, as the Tags created on Tag.gd are created as contracts compatible with the ERC20 standard.
+    Despite also allowing users to create they own tokens, just by deciding on the Name and Symbol for the Token, these tokens are created with certain restrictions in mind to work as tags:
+    - One address A can only tag another address B with a certain tag once;
+    - One address can be tagged with many different tags;
+    - The total supply of the token (that corresponds to the Tag) is increased by 1 for each tagging;
+    - The total supply of the token is reduced by 1 for each removal of a tagging;
+    - The tag tokens are not transferrable, that is, operations that would allow a user to transfer a token after receiving it are blocked (transfer, transferFrom and approve);
+    - Only the user that does a tagging can remove it, that is, if address A has tagged address B previously, only address A can remove its tagging from address B.
+    
+    
+    In the future, through information gathered from the tagged addresses, we hope to help improve access to the Ethereum network, helping signaling dangerous or scammer addresses, so users avoid sending Ethereum (or other tokens) to those addresses.
+  </p>
+</div>
