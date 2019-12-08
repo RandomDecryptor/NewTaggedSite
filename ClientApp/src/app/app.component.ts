@@ -1,3 +1,6 @@
+/*
+	@2019 FC. All rights reserved.
+*/
 import { Component } from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatOptionSelectionChange} from "@angular/material";
