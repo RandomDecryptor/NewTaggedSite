@@ -6,6 +6,8 @@ import {FormControl} from '@angular/forms';
 import {MatOptionSelectionChange} from "@angular/material";
 import {Observable, of} from 'rxjs';
 import {filter, map, startWith, switchMap} from 'rxjs/operators';
+import {Store} from "@ngrx/store";
+import * as fromEth from '../app/ethereum';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +22,9 @@ export class AppComponent {
     ,['Ten', '10'], ['Eleven', '11'], ['Twelve', '12']
   ]);
   filteredOptions: Observable<string[][]>;
+
+  constructor(private store: Store<fromEth.AppState>) {
+  }
 
   ngOnInit() {
     this.filteredOptions = this.myControl.valueChanges
@@ -43,6 +48,15 @@ export class AppComponent {
           options => options.filter(option => option[0].toLowerCase().includes(filterValue))
       )
     );
+  }
+
+  connectEthereum() {
+    console.log('Button pressed');
+    //Initizalize Ethereum Connector:
+    //TODO: ESTAVA AQUI!!!!
+    //DEU ESTE ERRO: Ver guia de exemplo do ngrx Ethereum que falava deste erro com o crypto!!
+    // Module not found: Error: Can't resolve 'crypto' in 'E:\Work\Programacao\Javascript\Workspace\NewTaggedSite\ClientApp\node_modules\eth-lib\lib
+    //this.store.dispatch(new fromEth.InitEth());
   }
 
   displayFn(option?: string[]): string | undefined {

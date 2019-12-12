@@ -13,6 +13,10 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    //"traceResolution": true,
     "lib": [
       "es2018",
       "dom"
