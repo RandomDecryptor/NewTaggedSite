@@ -1,6 +1,7 @@
 import { InjectionToken} from '@angular/core';
 import Web3 from 'web3';
-import { TruffleContract } from 'truffle-contract';
+//import { TruffleContract } from 'truffle-contract';
+import { default as contract } from 'truffle-contract';
 import ContractAbi from '../../../../build/contracts/Tagged.json';
 
 
@@ -19,9 +20,9 @@ export const WEB3 = new InjectionToken<Web3>('web3Token', {
 });
 
 
-export const SmartContract = new InjectionToken<TruffleContract.Contract>('smartContract', {
+export const SmartContract = new InjectionToken<contract>('smartContract', {
   providedIn: 'root',
-  factory: () =>  TruffleContract.Contract(ContractAbi),
+  factory: () =>  contract(ContractAbi),
 
 });
 
