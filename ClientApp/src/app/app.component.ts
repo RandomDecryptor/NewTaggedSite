@@ -52,11 +52,8 @@ export class AppComponent {
 
   connectEthereum() {
     console.log('Button pressed');
-    //Initizalize Ethereum Connector:
-    //TODO: ESTAVA AQUI!!!!
-    //DEU ESTE ERRO: Ver guia de exemplo do ngrx Ethereum que falava deste erro com o crypto!!
-    // Module not found: Error: Can't resolve 'crypto' in 'E:\Work\Programacao\Javascript\Workspace\NewTaggedSite\ClientApp\node_modules\eth-lib\lib
-    //this.store.dispatch(new fromEth.InitEth());
+    //FIXME: Force Initialization of Ethereum Connector (Try to do it with router or something else, or even by the user clicking a button like in HEX token web site):
+    this.store.dispatch(new fromEth.InitEth());
   }
 
   displayFn(option?: string[]): string | undefined {
