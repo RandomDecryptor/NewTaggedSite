@@ -69,6 +69,13 @@ Install after that the truffle-contract package:
 npm install truffle-contract --save
 ```
 
+Introduce contracts (what they call migrate) into the running Ganache Ethereum network:
+
+```bash
+truffle migrate --reset --network ganache
+```
+(the --reset parameter forces the network to reset itself)
+
 
 Start web page:
 

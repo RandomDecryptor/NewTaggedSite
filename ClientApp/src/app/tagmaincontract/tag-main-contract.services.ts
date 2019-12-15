@@ -14,7 +14,8 @@ import Web3 from 'web3';
 @Injectable()
 export class TagMainContractService {
 
-    private _contractAddress = "0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe"; //Test Net Ropsten Contract Address
+    //private _contractAddress = "0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe"; //Test Net Ropsten Contract Address
+    private _contractAddress = "0xf2c3E188317aecD6AA8378e80ab72196954c03BA"; //Ganache Local Network Test new-tagged
 
     constructor(@Inject(WEB3) private web3: Web3,
                 @Inject(SmartContract) private smartContract: TruffleContract) {

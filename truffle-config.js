@@ -93,7 +93,7 @@ module.exports = {
       version: "0.4.25",
       settings: {
         optimizer: {
-          enable: true,
+          enabled: true,
           runs: 200
         }
       }
