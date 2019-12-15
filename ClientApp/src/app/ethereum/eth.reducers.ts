@@ -1,6 +1,5 @@
-
 import * as ethActions from './eth.actions';
-import { ActionReducerMap, createSelector, createFeatureSelector } from '@ngrx/store';
+import {ActionReducerMap, createSelector, createFeatureSelector} from '@ngrx/store';
 import * as root from '../reducers';
 
 // based on https://ngrx.io/guide/store/selectors
@@ -9,31 +8,39 @@ export interface State {
     defaultAccount: string;
     balance: string;
     accounts: string[];
+    taggingCost: any; //TODO: Should be BigNumber here or something similar! Check what Ethereum return and how we can import it into typescript!
+    taggingByCreatorCost: any, //TODO: Should be BigNumber here or something similar! Check what Ethereum return and how we can import it into typescript!
+    tagCreationCost: any, //TODO: Should be BigNumber here or something similar! Check what Ethereum return and how we can import it into typescript!
+    tagTransferCost: any //TODO: Should be BigNumber here or something similar! Check what Ethereum return and how we can import it into typescript!
 }
 
-const initialState: State  = {
-  connectionStatus: false,
-  defaultAccount: null,
-  balance: null,
-  accounts: []
+const initialState: State = {
+    connectionStatus: false,
+    defaultAccount: null,
+    balance: null,
+    accounts: [],
+    taggingCost: null,
+    taggingByCreatorCost: null,
+    tagCreationCost: null,
+    tagTransferCost: null,
 };
 
 
-export const reducer = (state = initialState, action: ethActions.EthActionsUnion): State  => {
+export const reducer = (state = initialState, action: ethActions.EthActionsUnion): State => {
     switch (action.type) {
 
-      case (ethActions.ActionTypes.INIT_ETH_SUCCESS): {
-        return {...state, connectionStatus: true};
-      }
-      case (ethActions.ActionTypes.GET_ACCOUNTS_SUCCESS): {
-            return {...state, accounts: action.payload };
+        case (ethActions.ActionTypes.INIT_ETH_SUCCESS): {
+            return {...state, connectionStatus: true};
+        }
+        case (ethActions.ActionTypes.GET_ACCOUNTS_SUCCESS): {
+            return {...state, accounts:action.payload };
         }
         case (ethActions.ActionTypes.SET_DEFAULT_ACCOUNT_SUCCESS): {
             return {...state, defaultAccount: action.payload };
         }
         case (ethActions.ActionTypes.GET_CURRENT_BALANCE_SUCCESS): {
-          return {...state, balance: action.payload };
-      }
+            return {...state, balance: action.payload};
+        }
         case (ethActions.ActionTypes.ETH_ERROR): {
             console.error('Got error:', action.payload);
             return state;
@@ -46,7 +53,7 @@ export const reducer = (state = initialState, action: ethActions.EthActionsUnion
 
 // add new state slice
 export interface EthState {
-  eth: State ;
+    eth: State;
 }
 
 /**

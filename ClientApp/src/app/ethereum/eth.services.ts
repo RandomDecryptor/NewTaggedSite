@@ -65,15 +65,15 @@ Q: According to web3.js documentation, web3.eth.getAccounts()
        );
    }
 
-/*
-Here i use this test function to show that you have to set the default account
-It is not populated automatically
-public currentAccount(): Observable<string> {
+    /*
+    Here i use this test function to show that you have to set the default account
+    It is not populated automatically
+    public currentAccount(): Observable<string> {
 
-      return of(this.web3.eth.defaultAccount);
+          return of(this.web3.eth.defaultAccount);
 
-}
-*/
+    }
+    */
 
 
 

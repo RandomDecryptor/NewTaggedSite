@@ -20,7 +20,7 @@ export class EthEffects {
         private actions$: Actions<fromAction.EthActionsUnion>,
         @Inject(WEB3) private web3: Web3,
         @Inject(SmartContract) private smartContract: TruffleContract,
-        private ethSrv: EthService
+        private ethService: EthService
     ) {
     }
 
@@ -78,7 +78,7 @@ export class EthEffects {
                         }
 
                         // set default account
-                        this.ethSrv.defaultAccount = ethAccounts[0];
+                        this.ethService.defaultAccount = ethAccounts[0];
 
                         // set the provider for the smart contract
                         this.smartContract.setProvider(this.web3.currentProvider);
@@ -102,7 +102,7 @@ export class EthEffects {
 
     GetAccounts$: Observable<Action> = createEffect(() => this.actions$.pipe(
         ofType(fromAction.ActionTypes.GET_ACCOUNTS),
-        switchMap(() => this.ethSrv.getAccounts().pipe(
+        switchMap(() => this.ethService.getAccounts().pipe(
             map((accounts: string[]) => new fromAction.GetAccountsSuccess(accounts)),
             catchError(err => of(new fromAction.EthError(err)))
         )),
@@ -113,7 +113,7 @@ export class EthEffects {
         ofType(fromAction.ActionTypes.SET_DEFAULT_ACCOUNT),
         map((action: fromAction.SetDefaultAccount) => {
 
-            this.ethSrv.defaultAccount = action.payload;
+            this.ethService.defaultAccount = action.payload;
 
             return new fromAction.SetDefaultAccountSuccess(action.payload);
         })
@@ -122,11 +122,19 @@ export class EthEffects {
 
     GetAccountBalance$: Observable<Action> = createEffect(() => this.actions$.pipe(
         ofType(fromAction.ActionTypes.GET_CURRENT_BALANCE),
-        switchMap(() => this.ethSrv.getAccountBalance().pipe(
+        switchMap(() => this.ethService.getAccountBalance().pipe(
             map((balance: string) => new fromAction.GetAccountBalanceSuccess(balance)),
             catchError(err => of(new fromAction.EthError(err)))
         )),
     ));
-
+/*
+    GetTaggingCost$: Observable<Action> = createEffect(() => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.GET_TAGGING_COST),
+        switchMap(() => this.ethService.getAccountBalance().pipe(
+            map((balance: string) => new fromAction.GetTaggingCostSuccess(balance)),
+            catchError(err => of(new fromAction.EthError(err)))
+        )),
+    ));
+*/
 
 }

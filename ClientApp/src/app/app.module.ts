@@ -26,6 +26,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatGridListModule } from '@angular/material/grid-list';
 import {EthModule} from "./ethereum/eth.module";
 import {environment} from "../environments/environment";
+import {TagMainContractModule} from "./tagmaincontract/tag-main-contract.module";
 
 @NgModule({
   declarations: [
@@ -54,7 +55,8 @@ import {environment} from "../environments/environment";
       logOnly: environment.production, // Restrict extension to log-only mode
     }),
 
-    EthModule //TODO: Maybe try to remove this from here!! Use the Router like the other example!
+    EthModule, //TODO: Maybe try to remove this from here!! Use the Router like the other example!
+      TagMainContractModule //TODO: Maybe try to remove this from here!! Use the Router like the other example!
 
   ],
   providers: [],

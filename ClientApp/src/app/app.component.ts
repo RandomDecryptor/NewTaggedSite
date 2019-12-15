@@ -8,6 +8,7 @@ import {Observable, of} from 'rxjs';
 import {filter, map, startWith, switchMap} from 'rxjs/operators';
 import {Store} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
+import * as fromTagMainContract from '../app/tagmaincontract';
 
 @Component({
   selector: 'app-root',
@@ -55,6 +56,11 @@ export class AppComponent {
     //FIXME: Force Initialization of Ethereum Connector (Try to do it with router or something else, or even by the user clicking a button like in HEX token web site):
     this.store.dispatch(new fromEth.InitEth());
   }
+
+    connectTagMainContract() {
+        console.log('Button pressed Tag Main Contract');
+        this.store.dispatch(new fromTagMainContract.GetTaggingCost());
+    }
 
   displayFn(option?: string[]): string | undefined {
     return option ? option[0] : undefined;
