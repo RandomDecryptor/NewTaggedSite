@@ -55,7 +55,12 @@ export class EthEffects {
         //exhaustMap((action: fromAction.InitEth) => {
         switchMap((action: fromAction.InitEth) => {
 
+            var testDebbug = this.web3.currentProvider,
+                test2 = this.web3;
             if ('enable' in this.web3.currentProvider) {
+
+                ////We set the provider already here, so we can access the smart contract GET methods (not possible the SET methods):
+                //this.smartContract.setProvider(this.web3.currentProvider);
 
                 /*
                 based on https://medium.com/metamask/https-medium-com-metamask-breaking-change-injecting-web3-7722797916a8
@@ -80,8 +85,8 @@ export class EthEffects {
                         // set default account
                         this.ethService.defaultAccount = ethAccounts[0];
 
-                        // set the provider for the smart contract
-                        this.smartContract.setProvider(this.web3.currentProvider);
+                        //// set the provider for the smart contract
+                        //this.smartContract.setProvider(this.web3.currentProvider);
 
                         // dispatch multiple actions at ones
                         return [
@@ -95,6 +100,30 @@ export class EthEffects {
                     // User denied account access
                     catchError((err: any) => of(new fromAction.EthError(err)))
                 );
+            }
+            else {
+                //TODO: Needs to launch an alert (or add an action) to install MetaMask plugin or something similar (web3 support)
+            }
+        })
+    ));
+
+    InitEtherConsult$ = createEffect(() => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.INIT_ETH_CONSULT),
+        tap(value => console.log("Eth consultation init: " + value)),
+        switchMap((action: fromAction.InitEthConsult) => {
+
+            if ('enable' in this.web3.currentProvider) {
+
+                //We set the provider already here, so we can access the smart contract GET methods (not possible the SET methods):
+                this.smartContract.setProvider(this.web3.currentProvider);
+
+                return [
+                    new fromAction.InitEthConsultSuccess(),
+                ];
+            }
+            else {
+                //TODO: Needs to launch an alert (or add an action) to install MetaMask plugin or something similar (web3 support)
+                console.log("Eth Consult Init: Needs MetaMask plugin!");
             }
         })
     ));

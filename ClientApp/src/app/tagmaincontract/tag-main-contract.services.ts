@@ -37,6 +37,39 @@ export class TagMainContractService {
     }
 
 
+    public getTaggingByCreatorCost(): Observable<string> {
+        return from(this.smartContract.at(this._contractAddress)).pipe(
+            switchMap((instance: any) => from<string>(instance.getTaggingByCreatorPrice())),
+            tap(cost => console.log("Tagging By Creator Cost Gotten: " + cost)),
+            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            tap(cost => console.log("Tagging By Creator Cost Gotten 2!: " + cost))
+        );
+
+    }
+
+
+    public getTagCreationCost(): Observable<string> {
+        return from(this.smartContract.at(this._contractAddress)).pipe(
+            switchMap((instance: any) => from<string>(instance.getRegisterTagCreationPrice())),
+            tap(cost => console.log("Tag Creation Cost Gotten: " + cost)),
+            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            tap(cost => console.log("Tag Creation Cost Gotten 2!: " + cost))
+        );
+
+    }
+
+
+    public getTagTransferCost(): Observable<string> {
+        return from(this.smartContract.at(this._contractAddress)).pipe(
+            switchMap((instance: any) => from<string>(instance.getTagTransferPrice())),
+            tap(cost => console.log("Tag Transfer Cost Gotten: " + cost)),
+            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            tap(cost => console.log("Tag Transfer Cost Gotten 2!: " + cost))
+        );
+
+    }
+
+
     public setAttack(name: string): Observable<any> {
 
         return from(this.smartContract.deployed()).pipe(

@@ -57,6 +57,12 @@ export class AppComponent {
     this.store.dispatch(new fromEth.InitEth());
   }
 
+    connectEthereumConsult() {
+        console.log('Button pressed Ethereum Consult');
+        //FIXME: Force Initialization of Ethereum Connector (Try to do it with router or something else, or even by the user clicking a button like in HEX token web site):
+        this.store.dispatch(new fromEth.InitEthConsult());
+    }
+
     connectTagMainContract() {
         console.log('Button pressed Tag Main Contract');
         this.store.dispatch(new fromTagMainContract.GetTaggingCost());
