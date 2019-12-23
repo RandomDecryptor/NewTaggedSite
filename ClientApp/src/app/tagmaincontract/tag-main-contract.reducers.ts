@@ -8,6 +8,7 @@ export interface State {
     taggingByCreatorCost: string;
     tagCreationCost: string;
     tagTransferCost: string;
+    tags: any;
 }
 
 
@@ -16,6 +17,7 @@ const initialState: State = {
     taggingByCreatorCost: null,
     tagCreationCost: null,
     tagTransferCost: null,
+    tags: null,
 };
 
 
@@ -38,9 +40,10 @@ export const reducer = (state = initialState, action: tagMainContractActions.Tag
             return {...state, tagTransferCost: action.payload};
         }
 
-        case (tagMainContractActions.ActionTypes.SET_ATTACK_SUCCESS): {
-            return {...state, taggingCost: action.payload};
+        case (tagMainContractActions.ActionTypes.GET_ALL_TAGS_SUCCESS): {
+            return {...state, tags: action.payload};
         }
+
         case (tagMainContractActions.ActionTypes.ETH_ERROR): {
             console.error('Got error:', action.payload);
             return state;
@@ -75,4 +78,5 @@ export const getTaggingCost = createSelector(getTagMainContractState, (state: St
 export const getTaggingByCreatorCost = createSelector(getTagMainContractState, (state: State) => state.taggingByCreatorCost);
 export const getTagCreationCost = createSelector(getTagMainContractState, (state: State) => state.tagCreationCost);
 export const getTagTransferCost = createSelector(getTagMainContractState, (state: State) => state.tagTransferCost);
+export const getAllTags = createSelector(getTagMainContractState, (state: State) => state.tags);
 

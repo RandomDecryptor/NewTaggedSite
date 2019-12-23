@@ -6,7 +6,7 @@ import {FormControl} from '@angular/forms';
 import {MatOptionSelectionChange} from "@angular/material";
 import {Observable, of} from 'rxjs';
 import {filter, map, startWith, switchMap} from 'rxjs/operators';
-import {Store} from "@ngrx/store";
+import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from '../app/tagmaincontract';
 
@@ -24,18 +24,41 @@ export class AppComponent {
   ]);
   filteredOptions: Observable<string[][]>;
 
-  constructor(private store: Store<fromEth.AppState>) {
+  constructor(private ethStore: Store<fromEth.AppState>, private taggedContractStore: Store<fromTagMainContract.AppState>) {
   }
 
-  ngOnInit() {
-    this.filteredOptions = this.myControl.valueChanges
-      .pipe(
-        startWith(''),
-        map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
-        //map(value => this._filter(value))
-        switchMap(value => this._filter(value))
-      );
-  }
+    private taggingCost$: Observable<string>;
+
+    private taggingByCreatorCost$: Observable<string>;
+
+    private tagCreationCost$: Observable<string>;
+
+    private tagTransferCost$: Observable<string>;
+
+    ngOnInit() {
+        this.filteredOptions = this.myControl.valueChanges
+            .pipe(
+                startWith(''),
+                map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
+                //map(value => this._filter(value))
+                switchMap(value => this._filter(value))
+            );
+
+        //Init getting selectors from store:
+        this.taggingCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTaggingCost));
+        this.taggingByCreatorCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTaggingByCreatorCost));
+        this.tagCreationCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTagCreationCost));
+        this.tagTransferCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTagTransferCost));
+
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getTaggingCost)
+            )
+            .subscribe(taggingCost => {
+                console.log('Tagging Cost: ' + taggingCost)
+            });
+
+    }
 
   private _filter(value: string): Observable<string[][]> {
     console.log('Value Filter: "' + value + '"');
@@ -54,18 +77,18 @@ export class AppComponent {
   connectEthereum() {
     console.log('Button pressed');
     //FIXME: Force Initialization of Ethereum Connector (Try to do it with router or something else, or even by the user clicking a button like in HEX token web site):
-    this.store.dispatch(new fromEth.InitEth());
+    this.ethStore.dispatch(new fromEth.InitEth());
   }
 
     connectEthereumConsult() {
         console.log('Button pressed Ethereum Consult');
         //FIXME: Force Initialization of Ethereum Connector (Try to do it with router or something else, or even by the user clicking a button like in HEX token web site):
-        this.store.dispatch(new fromEth.InitEthConsult());
+        this.ethStore.dispatch(new fromEth.InitEthConsult());
     }
 
     connectTagMainContract() {
         console.log('Button pressed Tag Main Contract');
-        this.store.dispatch(new fromTagMainContract.GetTaggingCost());
+        this.ethStore.dispatch(new fromTagMainContract.GetTaggingCost());
     }
 
   displayFn(option?: string[]): string | undefined {

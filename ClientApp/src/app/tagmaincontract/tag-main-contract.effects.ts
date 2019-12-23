@@ -31,7 +31,8 @@ export class TagMainContractEffects {
             new fromAction.GetTaggingCost(),
             new fromAction.GetTaggingByCreatorCost(),
             new fromAction.GetTagCreationCost(),
-            new fromAction.GetTagTransferCost()
+            new fromAction.GetTagTransferCost(),
+            new fromAction.GetAllTags()
         ] ),
         catchError(err => of(new fromAction.EthError(err)))
     ));
@@ -71,19 +72,27 @@ export class TagMainContractEffects {
         ))
     ));
 
-
-    @Effect()
-    SetAttack$: Observable<Action> = this.actions$.pipe(
-        ofType(fromAction.ActionTypes.SET_ATTACK),
-        map((action: fromAction.SetAttack) => action.payload),
-        exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
-            tap(result => console.log('result', result)),
-            // retrieve the log information that will contain the event data.
-            map(result => result.logs[0].args[0]),
-            map((newName: string) => new fromAction.SetAttackSuccess(newName)),
+    GetAllTags$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.GET_ALL_TAGS),
+        switchMap(() => this.tagMainContractService.getAllTags().pipe(
+            map((cost: string) => new fromAction.GetAllTagsSuccess(cost)),
             catchError(err => of(new fromAction.EthError(err)))
-        )),
-    );
+        ))
+    ));
 
+    /*
+        @Effect()
+        SetAttack$: Observable<Action> = this.actions$.pipe(
+            ofType(fromAction.ActionTypes.SET_ATTACK),
+            map((action: fromAction.SetAttack) => action.payload),
+            exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
+                tap(result => console.log('result', result)),
+                // retrieve the log information that will contain the event data.
+                map(result => result.logs[0].args[0]),
+                map((newName: string) => new fromAction.SetAttackSuccess(newName)),
+                catchError(err => of(new fromAction.EthError(err)))
+            )),
+        );
+    */
 
 }

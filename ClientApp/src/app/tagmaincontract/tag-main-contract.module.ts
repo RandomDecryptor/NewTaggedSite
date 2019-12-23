@@ -34,7 +34,7 @@ const routes: Routes = [
 
     //RouterModule.forChild(routes),
 
-    StoreModule.forFeature('attackState', reducers),
+    StoreModule.forFeature('tagMainContractState', reducers),
     EffectsModule.forFeature([TagMainContractEffects])
   ],
   providers: [TagMainContractService]

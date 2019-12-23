@@ -1,8 +1,6 @@
 import { Action } from '@ngrx/store';
 
 export enum ActionTypes {
-  SET_ATTACK = '[Tag Main Contract] Set Attack',
-  SET_ATTACK_SUCCESS = '[Tag Main Contract] Set Attack Success',
   GET_TAGGING_COST = '[Tag Main Contract] Get Tagging Cost',
   GET_TAGGING_COST_SUCCESS = '[Tag Main Contract] Get Tagging Cost Success',
   GET_TAGGING_BY_CREATOR_COST = '[Tag Main Contract] Get Tagging By Creator Cost',
@@ -11,6 +9,8 @@ export enum ActionTypes {
   GET_TAG_CREATION_COST_SUCCESS = '[Tag Main Contract] Get Tag Creation Cost Success',
   GET_TAG_TRANSFER_COST = '[Tag Main Contract] Get Tag Transfer Cost',
   GET_TAG_TRANSFER_COST_SUCCESS = '[Tag Main Contract] Get Tag Transfer Cost Success',
+  GET_ALL_TAGS = '[Tag Main Contract] Get All Tags',
+  GET_ALL_TAGS_SUCCESS = '[Tag Main Contract] Get All Tags Success',
   ETH_ERROR = '[Tag Main Contract] Error',
 
 }
@@ -18,17 +18,6 @@ export enum ActionTypes {
 /**
  * ACTIONS
  */
-export class SetAttack implements Action {
-  readonly type = ActionTypes.SET_ATTACK;
-  constructor(public payload: string) {}
-}
-
-export class SetAttackSuccess implements Action {
-  readonly type = ActionTypes.SET_ATTACK_SUCCESS;
-  constructor(public payload: string) {}
-}
-
-
 export class GetTaggingCost implements Action {
   readonly type = ActionTypes.GET_TAGGING_COST;
 }
@@ -68,6 +57,15 @@ export class GetTagTransferCostSuccess implements Action {
     constructor(public payload: string) {}
 }
 
+export class GetAllTags implements Action {
+    readonly type = ActionTypes.GET_ALL_TAGS;
+}
+
+export class GetAllTagsSuccess implements Action {
+    readonly type = ActionTypes.GET_ALL_TAGS_SUCCESS;
+    constructor(public payload: string) {}
+}
+
 
 export class EthError implements Action {
     readonly type = ActionTypes.ETH_ERROR;
@@ -75,8 +73,6 @@ export class EthError implements Action {
 }
 
 export type TagMainContractUnion =
-    | SetAttack
-    | SetAttackSuccess
     | GetTaggingCost
     | GetTaggingCostSuccess
     | GetTaggingByCreatorCost
@@ -85,4 +81,6 @@ export type TagMainContractUnion =
     | GetTagCreationCostSuccess
     | GetTagTransferCost
     | GetTagTransferCostSuccess
+    | GetAllTags
+    | GetAllTagsSuccess
     | EthError;
