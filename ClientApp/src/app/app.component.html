@@ -13,19 +13,27 @@
   <mat-grid-tile>
     <form class="example-form">
       <mat-form-field class="example-full-width">
-        <input type="text" id="testCampo" maxlength="51" matInput placeholder="Pick a Tag Name" aria-label="Selected Tag Name" [formControl]="myControl" [matAutocomplete]="autoTagName" >
+          <!-- [a-zA-Z!#-&(-/:;=?@€£§{}[]´`~^_|«»0-9 ]|[\xc0-\xfe] -->
+          <!-- Missing exclusion of []!!-->
+        <input type="text" id="testCampo" maxlength="51" appRestrictTo="[a-zA-Z!#-&(-/:;=?@€£§{}´`~^_|«»0-9 ]|[\xc0-\xfe]|[[]|[\]]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick a Tag Name" aria-label="Selected Tag Name" [formControl]="myControl" [matAutocomplete]="autoTagName" >
         <mat-autocomplete autoActiveFirstOption #autoTagName="matAutocomplete" [displayWith]="displayFn">
           <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (onSelectionChange)="selectionChanged($event, option[1])" >{{option[0]}}</mat-option>
         </mat-autocomplete>
       </mat-form-field>
     </form>
   </mat-grid-tile>
+    <mat-grid-tile>
+        <div *ngIf="creationAvailable">
+            <button mat-raised-button type="button" (click)="connectEthereumConsult()" >Create new tag "{{currentTagName}}"</button>
+        </div>
+    </mat-grid-tile>
 
 </mat-grid-list>
 
-<button mat-raised-button type="button" (click)="connectEthereum()" >Connect Ethernet</button>
+<button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
 <button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>
 <button mat-raised-button type="button" (click)="connectEthereumConsult()" >Connect Ethernet Consultation Only</button>
+
 
 <div class="section section--tag">
     <span>Tagging Cost: {{taggingCost$ | async}}<span *ngIf="(taggingCost$ | async)"> Eth</span></span><br/>

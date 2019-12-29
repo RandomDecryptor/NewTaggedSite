@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import {Tag} from "../tags/tags.model";
 
 export enum ActionTypes {
   GET_TAGGING_COST = '[Tag Main Contract] Get Tagging Cost',
@@ -63,7 +64,7 @@ export class GetAllTags implements Action {
 
 export class GetAllTagsSuccess implements Action {
     readonly type = ActionTypes.GET_ALL_TAGS_SUCCESS;
-    constructor(public payload: string) {}
+    constructor(public payload: Tag[]) {}
 }
 
 

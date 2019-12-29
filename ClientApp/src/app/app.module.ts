@@ -4,8 +4,7 @@ import { NgModule } from '@angular/core';
 
 //material
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {MatAutocompleteModule, MatDividerModule, MatFormFieldModule} from "@angular/material";
-import {MatInputModule} from '@angular/material';
+import {MatAutocompleteModule, MatDividerModule, MatFormFieldModule, MatInputModule, MatButtonModule} from "@angular/material";
 
 // routing
 import { AppRoutingModule } from './app-routing.module';
@@ -27,11 +26,13 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import {EthModule} from "./ethereum/eth.module";
 import {environment} from "../environments/environment";
 import {TagMainContractModule} from "./tagmaincontract/tag-main-contract.module";
+import { RestrictToDirective } from './inputs/restrict-to.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent
+    HomeComponent,
+    RestrictToDirective,
   ],
   imports: [
     BrowserModule,
@@ -44,6 +45,7 @@ import {TagMainContractModule} from "./tagmaincontract/tag-main-contract.module"
     MatAutocompleteModule,
     MatDividerModule,
     MatGridListModule,
+    MatButtonModule,
 
     StoreModule.forRoot(reducers, { metaReducers }),
     EffectsModule.forRoot([]),

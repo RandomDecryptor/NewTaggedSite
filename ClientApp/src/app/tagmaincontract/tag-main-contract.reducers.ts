@@ -1,6 +1,7 @@
 import * as tagMainContractActions from './tag-main-contract.actions';
 import {ActionReducerMap, createSelector, createFeatureSelector} from '@ngrx/store';
 import * as root from '../reducers';
+import {Tag} from "../tags/tags.model";
 
 // based on https://ngrx.io/guide/store/selectors
 export interface State {
@@ -8,7 +9,7 @@ export interface State {
     taggingByCreatorCost: string;
     tagCreationCost: string;
     tagTransferCost: string;
-    tags: any;
+    tags: Tag[];
 }
 
 
@@ -17,7 +18,7 @@ const initialState: State = {
     taggingByCreatorCost: null,
     tagCreationCost: null,
     tagTransferCost: null,
-    tags: null,
+    tags: [],
 };
 
 

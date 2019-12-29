@@ -75,7 +75,7 @@ export class TagMainContractEffects {
     GetAllTags$: Observable<Action> = createEffect( () => this.actions$.pipe(
         ofType(fromAction.ActionTypes.GET_ALL_TAGS),
         switchMap(() => this.tagMainContractService.getAllTags().pipe(
-            map((cost: string) => new fromAction.GetAllTagsSuccess(cost)),
+            map((tags: any) => new fromAction.GetAllTagsSuccess(tags)),
             catchError(err => of(new fromAction.EthError(err)))
         ))
     ));

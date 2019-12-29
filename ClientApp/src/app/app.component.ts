@@ -5,10 +5,11 @@ import { Component } from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatOptionSelectionChange} from "@angular/material";
 import {Observable, of} from 'rxjs';
-import {filter, map, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, filter, map, startWith, switchMap} from 'rxjs/operators';
 import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from '../app/tagmaincontract';
+import {Tag} from "./tags/tags.model";
 
 @Component({
   selector: 'app-root',
@@ -35,6 +36,20 @@ export class AppComponent {
 
     private tagTransferCost$: Observable<string>;
 
+    private tags: Tag[]; //Not Observable here, because we want the tags available at the moment, and not await for them or subscribe to them!
+
+    private _creationAvailable = false;
+
+    private _currentTagName: string = "";
+
+    get creationAvailable() {
+        return this._creationAvailable;
+    }
+
+    get currentTagName() {
+        return this._currentTagName;
+    }
+
     ngOnInit() {
         this.filteredOptions = this.myControl.valueChanges
             .pipe(
@@ -43,6 +58,14 @@ export class AppComponent {
                 //map(value => this._filter(value))
                 switchMap(value => this._filter(value))
             );
+
+        this.myControl.valueChanges
+            .pipe(
+                startWith(''),
+                //TODO: Try filter by just string!
+                map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
+                debounceTime(1500) //Wait 1.5 seconds to signal change in value
+            ).subscribe(value => this._tagNameChanged(value));
 
         //Init getting selectors from store:
         this.taggingCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTaggingCost));
@@ -58,6 +81,15 @@ export class AppComponent {
                 console.log('Tagging Cost: ' + taggingCost)
             });
 
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getAllTags)
+            )
+            .subscribe(tags => {
+                console.log('Tags: ' + tags);
+                //Will keep field tags always updated with the latest version of the already created tags:
+                this.tags = tags;
+            });
     }
 
   private _filter(value: string): Observable<string[][]> {
@@ -72,6 +104,39 @@ export class AppComponent {
           options => options.filter(option => option[0].toLowerCase().includes(filterValue))
       )
     );
+  }
+
+  private _tagNameChanged(value: string) {
+        //TODO: Remove or don't allow special characters for the tag Name! The Best is block them right at the start! Maybe not allow writing of these characters at the keyup/keydown!
+        console.log('_Tag Name Changed: ' + value);
+
+        //TODO: WAS HERE!!!!!!!!!!!!!***************
+      //... Detect change in tag, and check if it is an existing one or a new one!
+      //New tag, prepare for Creation
+      //Existing one, prepare for tagging (or removal currentTagNameif from the user address)
+        let tagFound = this.tags.find(tag => tag.name == value);
+        if(tagFound) {
+            //Tag Found, prepare for tagging or removal:
+            console.log(`Tag Found: ${tagFound}`);
+            this._creationAvailable = false;
+            //TODO
+            //...
+        }
+        else {
+            //Tag not found: prepare for creation of new Tag:
+            console.log(`NO TAG Found: ${tagFound}. Prepare creation!`);
+            if(value && value.length > 0) {
+                console.log('Has New Value. Really Prepare creation!');
+                this._creationAvailable = true;
+            }
+            else {
+                console.log('No New Value. No creation!');
+                this._creationAvailable = false;
+            }
+            //TODO
+            //...
+        }
+      this._currentTagName = value;
   }
 
   connectEthereum() {
