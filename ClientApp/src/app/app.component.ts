@@ -90,6 +90,9 @@ export class AppComponent {
                 //Will keep field tags always updated with the latest version of the already created tags:
                 this.tags = tags;
             });
+
+        //Try to get information from contract from Web3 provider it if exists:
+        this.ethStore.dispatch(new fromEth.InitEthConsult());
     }
 
   private _filter(value: string): Observable<string[][]> {
