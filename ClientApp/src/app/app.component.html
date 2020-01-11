@@ -23,7 +23,7 @@
   </mat-grid-tile>
     <mat-grid-tile>
         <div *ngIf="creationAvailable">
-            <button mat-raised-button type="button" (click)="connectEthereumConsult()" >Create new tag "{{currentTagName}}"</button>
+            <button mat-raised-button type="button" (click)="openPopupCreation()" >Create new tag "{{currentTagName}}"</button>
         </div>
     </mat-grid-tile>
 
@@ -33,9 +33,9 @@
 <button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>
 <button mat-raised-button type="button" (click)="connectEthereumConsult()" >Connect Ethernet Consultation Only</button>
 
-<br/>
 
 <div class="section section--tag">
+    <br/>
     <span>Tagging Cost: {{taggingCost$ | async}}<span *ngIf="(taggingCost$ | async)"> Eth</span></span><br/>
     <span>Tagging By Creator Cost: {{taggingByCreatorCost$ | async}}<span *ngIf="(taggingByCreatorCost$ | async)">  Eth</span></span><br/>
     <span>Tag Creation Cost: {{ tagCreationCost$ | async }}<span *ngIf="(tagCreationCost$ | async)">  Eth</span></span><br/>

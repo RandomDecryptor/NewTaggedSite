@@ -3,13 +3,14 @@
 */
 import { Component } from '@angular/core';
 import {FormControl} from '@angular/forms';
-import {MatOptionSelectionChange} from "@angular/material";
+import {MatDialog, MatOptionSelectionChange} from "@angular/material";
 import {Observable, of} from 'rxjs';
 import {debounceTime, filter, map, startWith, switchMap} from 'rxjs/operators';
 import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from '../app/tagmaincontract';
 import {Tag} from "./tags/tags.model";
+import {TagCreationDialogComponent, TagCreationDialogData} from "./creation/dialog/tag-creation-dialog.component";
 
 @Component({
   selector: 'app-root',
@@ -25,8 +26,10 @@ export class AppComponent {
   ]);
   filteredOptions: Observable<string[][]>;
 
-  constructor(private ethStore: Store<fromEth.AppState>, private taggedContractStore: Store<fromTagMainContract.AppState>) {
+  constructor(private ethStore: Store<fromEth.AppState>, private taggedContractStore: Store<fromTagMainContract.AppState>, private _dialogService: MatDialog) {
   }
+
+    static readonly debounceTimeCreationTagButton = 1000;
 
     private taggingCost$: Observable<string>;
 
@@ -64,7 +67,7 @@ export class AppComponent {
                 startWith(''),
                 //TODO: Try filter by just string!
                 map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
-                debounceTime(1500) //Wait 1.5 seconds to signal change in value
+                debounceTime(AppComponent.debounceTimeCreationTagButton) //Wait 1 seconds to signal change in value
             ).subscribe(value => this._tagNameChanged(value));
 
         //Init getting selectors from store:
@@ -141,6 +144,29 @@ export class AppComponent {
         }
       this._currentTagName = value;
   }
+
+    openPopupCreation() {
+        //TODO: Calculate tag creation cost depending on if user is tag creator or not!
+        this.tagCreationCost$.subscribe(value => {
+            let dialogRef = this._dialogService.open(TagCreationDialogComponent, {
+                data: {
+                    tagName: this._currentTagName,
+                    symbolName: this._currentTagName,
+                    tagCreationCost: value
+                }
+            });
+            dialogRef.afterClosed().subscribe((result: TagCreationDialogData)  => {
+                if(result) {
+                    //The dialog was closed as a OK!
+                    //Continue processing as expected:
+                    console.log(`Tag name to create: ${result.tagName}`);
+                    console.log(`Symbol name to create: ${result.symbolName}`);
+                    console.log(`Cost to create: ${result.tagCreationCost}`);
+                    this._creationAvailable = false;
+                }
+            });
+        });
+    }
 
   connectEthereum() {
     console.log('Button pressed');

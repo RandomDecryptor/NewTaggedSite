@@ -1,0 +1,19 @@
+<h1 mat-dialog-title>Create tag {{data.tagName}}</h1>
+<div mat-dialog-content>
+    <p>Tag Name:</p>
+    <mat-form-field>
+        <input matInput [(ngModel)]="data.tagName">
+    </mat-form-field>
+    <p>Symbol Name:</p>
+    <mat-form-field>
+        <input matInput [(ngModel)]="data.symbolName">
+    </mat-form-field>
+    <p>Cost to create tag (Eth):</p>
+    <mat-form-field>
+        <input matInput [(ngModel)]="data.tagCreationCost">
+    </mat-form-field>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">Cancel</button>
+    <button mat-button [mat-dialog-close]="data" cdkFocusInitial>Create</button>
+</div>
