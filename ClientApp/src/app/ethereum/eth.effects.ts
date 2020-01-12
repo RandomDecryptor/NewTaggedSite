@@ -59,9 +59,6 @@ export class EthEffects {
                 test2 = this.web3;
             if ('enable' in this.web3.currentProvider) {
 
-                ////We set the provider already here, so we can access the smart contract GET methods (not possible the SET methods):
-                //this.smartContract.setProvider(this.web3.currentProvider);
-
                 /*
                 based on https://medium.com/metamask/https-medium-com-metamask-breaking-change-injecting-web3-7722797916a8
                 This method returns a Promise that’s either resolved with user accounts after user approval,
@@ -103,6 +100,7 @@ export class EthEffects {
             }
             else {
                 //TODO: Needs to launch an alert (or add an action) to install MetaMask plugin or something similar (web3 support)
+                console.log("Eth Init: Needs MetaMask plugin!");
             }
         })
     ));
@@ -156,14 +154,5 @@ export class EthEffects {
             catchError(err => of(new fromAction.EthError(err)))
         )),
     ));
-/*
-    GetTaggingCost$: Observable<Action> = createEffect(() => this.actions$.pipe(
-        ofType(fromAction.ActionTypes.GET_TAGGING_COST),
-        switchMap(() => this.ethService.getAccountBalance().pipe(
-            map((balance: string) => new fromAction.GetTaggingCostSuccess(balance)),
-            catchError(err => of(new fromAction.EthError(err)))
-        )),
-    ));
-*/
 
 }

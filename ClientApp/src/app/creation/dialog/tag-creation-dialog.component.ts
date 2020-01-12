@@ -1,11 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-
-export interface TagCreationDialogData {
-    tagCreationCost: number;
-    tagName: string;
-    symbolName: string;
-}
+import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
+import {TagCreationData} from "../tag-creation-data";
 
 @Component({
     selector: 'app-tag-creation-dialog',
@@ -15,7 +10,7 @@ export interface TagCreationDialogData {
 export class TagCreationDialogComponent {
 
     constructor(public dialogRef: MatDialogRef<TagCreationDialogComponent>,
-                @Inject(MAT_DIALOG_DATA) public data: TagCreationDialogData) {
+                @Inject(MAT_DIALOG_DATA) public data: TagCreationData) {
     }
 
     onNoClick(): void {

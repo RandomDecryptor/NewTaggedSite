@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import {Tag} from "../tags/tags.model";
+import {TagCreationData} from "../creation/tag-creation-data";
 
 export enum ActionTypes {
   GET_TAGGING_COST = '[Tag Main Contract] Get Tagging Cost',
@@ -12,6 +13,8 @@ export enum ActionTypes {
   GET_TAG_TRANSFER_COST_SUCCESS = '[Tag Main Contract] Get Tag Transfer Cost Success',
   GET_ALL_TAGS = '[Tag Main Contract] Get All Tags',
   GET_ALL_TAGS_SUCCESS = '[Tag Main Contract] Get All Tags Success',
+  CREATE_TAG = '[Tag Main Contract] Create Tag',
+  CREATE_TAG_SUCCESS = '[Tag Main Contract] Create Tag Success',
   ETH_ERROR = '[Tag Main Contract] Error',
 
 }
@@ -67,6 +70,15 @@ export class GetAllTagsSuccess implements Action {
     constructor(public payload: Tag[]) {}
 }
 
+export class CreateTag implements Action {
+    readonly type = ActionTypes.CREATE_TAG;
+    constructor(public payload: TagCreationData) {}
+}
+
+export class CreateTagSuccess implements Action {
+    readonly type = ActionTypes.CREATE_TAG_SUCCESS;
+    constructor(public payload: any) {}
+}
 
 export class EthError implements Action {
     readonly type = ActionTypes.ETH_ERROR;
@@ -84,4 +96,6 @@ export type TagMainContractUnion =
     | GetTagTransferCostSuccess
     | GetAllTags
     | GetAllTagsSuccess
+    | CreateTag
+    | CreateTagSuccess
     | EthError;

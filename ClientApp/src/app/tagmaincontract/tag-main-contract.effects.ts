@@ -12,6 +12,7 @@ import * as fromActionEth from '../ethereum/eth.actions';
 // RXJS
 import {tap, switchMap, exhaustMap, map, catchError} from 'rxjs/operators';
 import {TagMainContractUnion} from "./tag-main-contract.actions";
+import {TagCreationData} from "../creation/tag-creation-data";
 
 @Injectable()
 export class TagMainContractEffects {
@@ -58,6 +59,7 @@ export class TagMainContractEffects {
     GetTagCreationCost$: Observable<Action> = createEffect( () => this.actions$.pipe(
         ofType(fromAction.ActionTypes.GET_TAG_CREATION_COST),
         switchMap(() => this.tagMainContractService.getTagCreationCost().pipe(
+            tap((cost: string) => console.log("Accessing Tag Creation!")),
             map((cost: string) => new fromAction.GetTagCreationCostSuccess(cost)),
             catchError(err => of(new fromAction.EthError(err)))
         ))
@@ -76,6 +78,15 @@ export class TagMainContractEffects {
         ofType(fromAction.ActionTypes.GET_ALL_TAGS),
         switchMap(() => this.tagMainContractService.getAllTags().pipe(
             map((tags: any) => new fromAction.GetAllTagsSuccess(tags)),
+            catchError(err => of(new fromAction.EthError(err)))
+        ))
+    ));
+
+    CreateTag$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.CREATE_TAG),
+        map((action: fromAction.CreateTag) => action.payload),
+        switchMap((payload: TagCreationData ) => this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
+            map((result: any) => new fromAction.CreateTagSuccess(result)),
             catchError(err => of(new fromAction.EthError(err)))
         ))
     ));

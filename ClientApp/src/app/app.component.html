@@ -36,10 +36,10 @@
 
 <div class="section section--tag">
     <br/>
-    <span>Tagging Cost: {{taggingCost$ | async}}<span *ngIf="(taggingCost$ | async)"> Eth</span></span><br/>
-    <span>Tagging By Creator Cost: {{taggingByCreatorCost$ | async}}<span *ngIf="(taggingByCreatorCost$ | async)">  Eth</span></span><br/>
-    <span>Tag Creation Cost: {{ tagCreationCost$ | async }}<span *ngIf="(tagCreationCost$ | async)">  Eth</span></span><br/>
-    <span>Tag Transfer Cost: {{ tagTransferCost$ | async }}<span *ngIf="(tagTransferCost$ | async)">  Eth</span></span><br/>
+    <span>Tagging Cost: {{taggingCost$ | async | weiToEther }}<span *ngIf="(taggingCost$ | async)"> Eth</span></span><br/>
+    <span>Tagging By Creator Cost: {{taggingByCreatorCost$ | async | weiToEther }}<span *ngIf="(taggingByCreatorCost$ | async)">  Eth</span></span><br/>
+    <span>Tag Creation Cost: {{ tagCreationCost$ | async | weiToEther }}<span *ngIf="(tagCreationCost$ | async)">  Eth</span></span><br/>
+    <span>Tag Transfer Cost: {{ tagTransferCost$ | async | weiToEther }}<span *ngIf="(tagTransferCost$ | async)">  Eth</span></span><br/>
 </div>
 
 <div class="section section--tag">

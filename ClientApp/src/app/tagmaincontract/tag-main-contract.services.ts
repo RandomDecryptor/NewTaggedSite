@@ -14,6 +14,8 @@ import {Tag} from "../tags/tags.model";
 @Injectable()
 export class TagMainContractService {
 
+    static readonly ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
     //private _contractAddress = "0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe"; //Test Net Ropsten Contract Address
     //private _contractAddress = "0xf2c3E188317aecD6AA8378e80ab72196954c03BA"; //Ganache Local Network Test new-tagged
     private _contractAddress = "0x0824a71C5F61DC213Eb7c5830192a311F079Da09"; //Ganache Local Network Test new-tagged (New Value: Complete Contract Redeployed!)
@@ -44,7 +46,7 @@ export class TagMainContractService {
         return this.getSmartContract().pipe(
             switchMap((instance: any) => from<string>(instance.getTaggingPrice())),
             tap(cost => console.log("Tagging Cost Gotten: " + cost)),
-            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            //map(cost => this.web3.utils.fromWei(cost, 'ether')),
             tap(cost => console.log("Tagging Cost Gotten 2!: " + cost))
         );
 
@@ -57,7 +59,7 @@ export class TagMainContractService {
         return this.getSmartContract().pipe(
             switchMap((instance: any) => from<string>(instance.getTaggingByCreatorPrice())),
             tap(cost => console.log("Tagging By Creator Cost Gotten: " + cost)),
-            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            //map(cost => this.web3.utils.fromWei(cost, 'ether')),
             tap(cost => console.log("Tagging By Creator Cost Gotten 2!: " + cost))
         );
 
@@ -67,8 +69,11 @@ export class TagMainContractService {
     public getTagCreationCost(): Observable<string> {
         return this.getSmartContract().pipe(
             switchMap((instance: any) => from<string>(instance.getRegisterTagCreationPrice())),
-            tap(cost => console.log("Tag Creation Cost Gotten: " + cost)),
-            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            tap(cost => {
+                //// @ts-ignore
+                //debugger;
+                console.log("Tag Creation Cost Gotten: " + cost)}),
+            //map(cost => this.web3.utils.fromWei(cost, 'ether')),
             tap(cost => console.log("Tag Creation Cost Gotten 2!: " + cost))
         );
 
@@ -79,12 +84,23 @@ export class TagMainContractService {
         return this.getSmartContract().pipe(
             switchMap((instance: any) => from<string>(instance.getTagTransferPrice())),
             tap(cost => console.log("Tag Transfer Cost Gotten: " + cost)),
-            map(cost => this.web3.utils.fromWei(cost, 'ether')),
+            //map(cost => this.web3.utils.fromWei(cost, 'ether')),
             tap(cost => console.log("Tag Transfer Cost Gotten 2!: " + cost))
         );
 
     }
 
+    /**
+     * Create a new tag registered on Tagged main contract.
+     * NOTE: Needs to have access to use users wallet!
+     */
+    public createTag(tagName: string, symbolName: string, tagCreationCost: string): Observable<string> {
+        const gasLimit = 6000000;
+        return this.getSmartContract().pipe(
+            switchMap((instance: any) => from<string>(instance.registerTag(tagName, symbolName, TagMainContractService.ZERO_ADDRESS /* 0x0 Address */,  {from: this.web3.eth.defaultAccount, gas: gasLimit, value: tagCreationCost}))),
+            tap(value => console.log("Tag Creation Return: " + value)),
+        );
+    }
 
     public getAllTags(): Observable<Tag[]> {
         return this.getSmartContract().pipe(

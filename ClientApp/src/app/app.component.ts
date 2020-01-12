@@ -10,7 +10,9 @@ import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from '../app/tagmaincontract';
 import {Tag} from "./tags/tags.model";
-import {TagCreationDialogComponent, TagCreationDialogData} from "./creation/dialog/tag-creation-dialog.component";
+import {TagCreationDialogComponent} from "./creation/dialog/tag-creation-dialog.component";
+import {TagCreationData} from "./creation/tag-creation-data";
+
 
 @Component({
   selector: 'app-root',
@@ -155,13 +157,17 @@ export class AppComponent {
                     tagCreationCost: value
                 }
             });
-            dialogRef.afterClosed().subscribe((result: TagCreationDialogData)  => {
+            dialogRef.afterClosed().subscribe((result: TagCreationData)  => {
                 if(result) {
                     //The dialog was closed as a OK!
                     //Continue processing as expected:
                     console.log(`Tag name to create: ${result.tagName}`);
                     console.log(`Symbol name to create: ${result.symbolName}`);
                     console.log(`Cost to create: ${result.tagCreationCost}`);
+                    //Launch event to create tag in ethereum network:
+                    this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
+
+                    //Hide button for creation, as one creation is already in progress:
                     this._creationAvailable = false;
                 }
             });

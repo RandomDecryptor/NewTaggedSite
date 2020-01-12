@@ -10,7 +10,7 @@
     </mat-form-field>
     <p>Cost to create tag (Eth):</p>
     <mat-form-field>
-        <input matInput [(ngModel)]="data.tagCreationCost">
+        <input matInput readonly value="{{ data.tagCreationCost | weiToEther }}">
     </mat-form-field>
 </div>
 <div mat-dialog-actions>

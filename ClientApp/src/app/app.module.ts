@@ -35,6 +35,7 @@ import {environment} from "../environments/environment";
 import {TagMainContractModule} from "./tagmaincontract/tag-main-contract.module";
 import { RestrictToDirective } from './inputs/restrict-to.directive';
 import { TagCreationDialogComponent } from './creation/dialog/tag-creation-dialog.component';
+import { WeiToEtherPipe } from './pipes/wei-to-ether.pipe';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { TagCreationDialogComponent } from './creation/dialog/tag-creation-dialo
     HomeComponent,
     RestrictToDirective,
     TagCreationDialogComponent,
+    WeiToEtherPipe,
   ],
     entryComponents: [
         TagCreationDialogComponent //Dialog component will be instanciated dynamically by the Dialog service!
