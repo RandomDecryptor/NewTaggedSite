@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
 import {Observable, of} from 'rxjs';
-import {debounceTime, filter, map, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, filter, first, map, shareReplay, startWith, switchMap} from 'rxjs/operators';
 import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from '../app/tagmaincontract';
@@ -75,7 +75,10 @@ export class AppComponent {
         //Init getting selectors from store:
         this.taggingCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTaggingCost));
         this.taggingByCreatorCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTaggingByCreatorCost));
-        this.tagCreationCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTagCreationCost));
+        this.tagCreationCost$ = this.taggedContractStore.pipe(
+                                    select(fromTagMainContract.getTagCreationCost),
+                                    //shareReplay(1) //Not needed for now! The select() keeps the value (probably does a shareReplay until the value is changed!)
+                                    );
         this.tagTransferCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTagTransferCost));
 
         this.taggedContractStore
@@ -147,30 +150,43 @@ export class AppComponent {
       this._currentTagName = value;
   }
 
-    openPopupCreation() {
-        //TODO: Calculate tag creation cost depending on if user is tag creator or not!
-        this.tagCreationCost$.subscribe(value => {
-            let dialogRef = this._dialogService.open(TagCreationDialogComponent, {
-                data: {
-                    tagName: this._currentTagName,
-                    symbolName: this._currentTagName,
-                    tagCreationCost: value
-                }
-            });
-            dialogRef.afterClosed().subscribe((result: TagCreationData)  => {
-                if(result) {
-                    //The dialog was closed as a OK!
-                    //Continue processing as expected:
-                    console.log(`Tag name to create: ${result.tagName}`);
-                    console.log(`Symbol name to create: ${result.symbolName}`);
-                    console.log(`Cost to create: ${result.tagCreationCost}`);
-                    //Launch event to create tag in ethereum network:
-                    this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
+    /**
+     * Method to apply function to first element of observable (from a Select operator on a Store).
+     * As this Observable is returned from the Select operator on a NgRx Store, the value there is frozen, so we just want to get the value
+     * there, should be the first and only value, and call the function to do our processing on that value (current value on the store).
+     */
+    processValue(obs: Observable<any>, funcValueProc: (value: any) => void) {
+        return obs.pipe(
+            first() //Will only the see the value that is currently there! Don't want to subscribe forever!
+        ).subscribe(value => funcValueProc(value));
+    }
 
-                    //Hide button for creation, as one creation is already in progress:
-                    this._creationAvailable = false;
-                }
-            });
+    onCreateNewTag() {
+        //this.processValue(this.tagCreationCost$, this.openPopupCreation); //Was losing the "this" as expected!
+        this.processValue(this.tagCreationCost$, (value) => this.openPopupCreation(value)); //Had to create Fat Arrow here to create an extra function, just to keep the correct "this"!
+    }
+
+    openPopupCreation(value: any) {
+        let dialogRef = this._dialogService.open(TagCreationDialogComponent, {
+            data: {
+                tagName: this._currentTagName,
+                symbolName: this._currentTagName,
+                tagCreationCost: value
+            }
+        });
+        dialogRef.afterClosed().subscribe((result: TagCreationData)  => {
+            if(result) {
+                //The dialog was closed as a OK!
+                //Continue processing as expected:
+                console.log(`Tag name to create: ${result.tagName}`);
+                console.log(`Symbol name to create: ${result.symbolName}`);
+                console.log(`Cost to create: ${result.tagCreationCost}`);
+                //Launch event to create tag in ethereum network:
+                this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
+
+                //Hide button for creation, as one creation is already in progress:
+                this._creationAvailable = false;
+            }
         });
     }
 
