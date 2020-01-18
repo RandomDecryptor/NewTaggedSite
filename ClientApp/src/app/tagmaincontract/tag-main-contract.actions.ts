@@ -15,6 +15,10 @@ export enum ActionTypes {
   GET_ALL_TAGS_SUCCESS = '[Tag Main Contract] Get All Tags Success',
   CREATE_TAG = '[Tag Main Contract] Create Tag',
   CREATE_TAG_SUCCESS = '[Tag Main Contract] Create Tag Success',
+  CREATE_TAG_PRE = '[Tag Main Contract] Create Tag Pre',
+  CREATE_TAG_PRE_SUCCESS = '[Tag Main Contract] Create Tag Pre Success',
+  STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] Store Action Until Connection to User Ethereum Wallet Allowed',
+  CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] CLEAR Store Action Until Connection to User Ethereum Wallet Allowed',
   ETH_ERROR = '[Tag Main Contract] Error',
 
 }
@@ -70,6 +74,16 @@ export class GetAllTagsSuccess implements Action {
     constructor(public payload: Tag[]) {}
 }
 
+export class CreateTagPre implements Action {
+    readonly type = ActionTypes.CREATE_TAG_PRE;
+    constructor(public payload: TagCreationData) {}
+}
+
+export class CreateTagPreSuccess implements Action {
+    readonly type = ActionTypes.CREATE_TAG_PRE_SUCCESS;
+    constructor(public payload: any) {}
+}
+
 export class CreateTag implements Action {
     readonly type = ActionTypes.CREATE_TAG;
     constructor(public payload: TagCreationData) {}
@@ -78,6 +92,15 @@ export class CreateTag implements Action {
 export class CreateTagSuccess implements Action {
     readonly type = ActionTypes.CREATE_TAG_SUCCESS;
     constructor(public payload: any) {}
+}
+
+export class StoreActionUntilEthInited implements Action {
+    readonly type = ActionTypes.STORE_ACTION_UNTIL_ETH_INITIALIZED;
+    constructor(public payload: Action) {}
+}
+
+export class ClearStoredActionsWaitingForEthInit implements Action {
+    readonly type = ActionTypes.CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED;
 }
 
 export class EthError implements Action {
@@ -98,4 +121,9 @@ export type TagMainContractUnion =
     | GetAllTagsSuccess
     | CreateTag
     | CreateTagSuccess
+    | CreateTagPre
+    | CreateTagPreSuccess
+    | StoreActionUntilEthInited
+    | ClearStoredActionsWaitingForEthInit
     | EthError;
+

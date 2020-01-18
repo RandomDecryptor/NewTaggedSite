@@ -1,5 +1,5 @@
 import * as tagMainContractActions from './tag-main-contract.actions';
-import {ActionReducerMap, createSelector, createFeatureSelector} from '@ngrx/store';
+import {ActionReducerMap, createSelector, createFeatureSelector, Action} from '@ngrx/store';
 import * as root from '../reducers';
 import {Tag} from "../tags/tags.model";
 
@@ -10,6 +10,7 @@ export interface State {
     tagCreationCost: string;
     tagTransferCost: string;
     tags: Tag[];
+    actionsWaitingForEthInit: Action[];
 }
 
 
@@ -19,6 +20,7 @@ const initialState: State = {
     tagCreationCost: null,
     tagTransferCost: null,
     tags: [],
+    actionsWaitingForEthInit: [],
 };
 
 
@@ -43,6 +45,16 @@ export const reducer = (state = initialState, action: tagMainContractActions.Tag
 
         case (tagMainContractActions.ActionTypes.GET_ALL_TAGS_SUCCESS): {
             return {...state, tags: action.payload};
+        }
+
+        //TODO: Maybe this management of the storing of the action and waiting for the Eth Init, should be handled by a service?
+        //the service would use selector "getConStatus" and subscribe to changes to it and when network is up launch new action?
+        case (tagMainContractActions.ActionTypes.STORE_ACTION_UNTIL_ETH_INITIALIZED): {
+            return {...state, actionsWaitingForEthInit: [...state.actionsWaitingForEthInit, action.payload]};
+        }
+
+        case (tagMainContractActions.ActionTypes.CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED): {
+            return {...state, actionsWaitingForEthInit: []};
         }
 
         case (tagMainContractActions.ActionTypes.ETH_ERROR): {
@@ -80,4 +92,5 @@ export const getTaggingByCreatorCost = createSelector(getTagMainContractState, (
 export const getTagCreationCost = createSelector(getTagMainContractState, (state: State) => state.tagCreationCost);
 export const getTagTransferCost = createSelector(getTagMainContractState, (state: State) => state.tagTransferCost);
 export const getAllTags = createSelector(getTagMainContractState, (state: State) => state.tags);
+export const getActionsWaitingForEthInit = createSelector(getTagMainContractState, (state: State) => state.actionsWaitingForEthInit);
 

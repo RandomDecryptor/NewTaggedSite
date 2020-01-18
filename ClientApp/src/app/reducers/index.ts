@@ -5,6 +5,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { storeFreeze } from 'ngrx-store-freeze';
 
 import { environment } from '../../environments/environment';
+import {enableBatching} from "../helpers/batch-actions.helper";
 
 // nice moment here
 // here is our root state, which also includes the route state
@@ -16,7 +17,7 @@ export const reducers: ActionReducerMap<AppState> = {
   router: routerReducer,
 };
 
-export const metaReducers = environment.production ? [] : [storeFreeze];
+export const metaReducers = environment.production ? [enableBatching] : [storeFreeze, enableBatching];
 
 // !!!here we define our root selectors
 export const routerState = createFeatureSelector<AppState, RouterReducerState>('router');

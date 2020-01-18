@@ -31,10 +31,12 @@ import { HomeComponent } from './pages/home/home.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatGridListModule } from '@angular/material/grid-list';
 import {EthModule} from "./ethereum/eth.module";
+
 import {environment} from "../environments/environment";
 import {TagMainContractModule} from "./tagmaincontract/tag-main-contract.module";
 import { RestrictToDirective } from './inputs/restrict-to.directive';
 import { TagCreationDialogComponent } from './creation/dialog/tag-creation-dialog.component';
+
 import { WeiToEtherPipe } from './pipes/wei-to-ether.pipe';
 
 @NgModule({

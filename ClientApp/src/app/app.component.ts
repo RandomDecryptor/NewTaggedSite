@@ -5,13 +5,17 @@ import { Component } from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
 import {Observable, of} from 'rxjs';
-import {debounceTime, filter, first, map, shareReplay, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, filter, first, map, shareReplay, startWith, switchMap, take, tap} from 'rxjs/operators';
 import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from '../app/tagmaincontract';
 import {Tag} from "./tags/tags.model";
 import {TagCreationDialogComponent} from "./creation/dialog/tag-creation-dialog.component";
 import {TagCreationData} from "./creation/tag-creation-data";
+import {batchActions} from "./helpers/batch-actions.helper";
+import * as fromActionEth from "./ethereum/eth.actions";
+import * as fromAction from "./tagmaincontract/tag-main-contract.actions";
+import {Actions, createEffect, ofType} from "@ngrx/effects";
 
 
 @Component({
@@ -28,7 +32,7 @@ export class AppComponent {
   ]);
   filteredOptions: Observable<string[][]>;
 
-  constructor(private ethStore: Store<fromEth.AppState>, private taggedContractStore: Store<fromTagMainContract.AppState>, private _dialogService: MatDialog) {
+  constructor(private ethStore: Store<fromEth.AppState>, private taggedContractStore: Store<fromTagMainContract.AppState>, private _dialogService: MatDialog, private ethActions$: Actions<fromActionEth.EthActionsUnion>) {
   }
 
     static readonly debounceTimeCreationTagButton = 1000;
@@ -182,7 +186,26 @@ export class AppComponent {
                 console.log(`Symbol name to create: ${result.symbolName}`);
                 console.log(`Cost to create: ${result.tagCreationCost}`);
                 //Launch event to create tag in ethereum network:
-                this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
+                //We will have to initialize also athe Ethereum network if not enabled yet:
+                //this.ethStore.dispatch(new fromTagMainContract.CreateTagPre(result));
+                //this.ethStore.dispatch(batchActions([new fromActionEth.InitEth(), new fromAction.CreateTag(result)]));
+                //!! Humm not interesting! Don't just want to reduce! Need to really call an action and another that depends on the success of that one!
+                /*
+                const initEthereum$ = createEffect(() => this.ethActions$.pipe(
+                    ofType(fromActionEth.ActionTypes.INIT_ETH_SUCCESS),
+                    //take(1),
+                    tap(() => {
+                        console.log('SPECIAL EFFECT DIALOG: DETECTED INIT_ETH_SUCCESS');
+                        this.ethStore.dispatch(new fromAction.CreateTag(result));
+                    })
+                    )
+                , { dispatch: false});
+
+                this.ethStore.dispatch(new fromActionEth.InitEth());
+                 */
+                //this.ethStore.dispatch(batchActions([new fromAction.StoreActionUntilEthInited(new fromAction.CreateTag(result)), new fromActionEth.InitEth()]));
+                this.ethStore.dispatch(new fromAction.StoreActionUntilEthInited(new fromAction.CreateTag(result)));
+                this.ethStore.dispatch(new fromActionEth.InitEth());
 
                 //Hide button for creation, as one creation is already in progress:
                 this._creationAvailable = false;
