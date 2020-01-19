@@ -1,4 +1,4 @@
-import * as tagMainContractActions from './tag-main-contract.actions';
+import * as tagMainContractActions from './tag-main-contract.actions.internal';
 import {ActionReducerMap, createSelector, createFeatureSelector, Action} from '@ngrx/store';
 import * as root from '../reducers';
 import {Tag} from "../tags/tags.model";

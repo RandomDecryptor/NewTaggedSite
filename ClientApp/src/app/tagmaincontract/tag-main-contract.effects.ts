@@ -6,15 +6,15 @@ import {Effect, Actions, ofType, createEffect} from '@ngrx/effects';
 import {Action, select, Store} from '@ngrx/store';
 import {Observable, of, from} from 'rxjs';
 
-import * as fromAction from './tag-main-contract.actions';
+import * as fromAction from './tag-main-contract.actions.internal';
 import * as fromActionEth from '../ethereum/eth.actions';
 
 // RXJS
 import {tap, switchMap, exhaustMap, map, catchError, concatMap, withLatestFrom} from 'rxjs/operators';
-import {TagMainContractUnion} from "./tag-main-contract.actions";
+import {TagMainContractUnion} from "./tag-main-contract.actions.internal";
 import {TagCreationData} from "../creation/tag-creation-data";
 import {Batch} from "../helpers/batch-actions.helper";
-import * as fromTagMainContract from "./index";
+import {AppState, getActionsWaitingForEthInit}  from './tag-main-contract.reducers';
 
 @Injectable()
 export class TagMainContractEffects {
@@ -23,7 +23,7 @@ export class TagMainContractEffects {
         private actions$: Actions<fromAction.TagMainContractUnion>,
         private ethActions$: Actions<fromActionEth.EthActionsUnion>,
         private tagMainContractService: TagMainContractService,
-        private taggedContractStore: Store<fromTagMainContract.AppState>
+        private taggedContractStore: Store<AppState>
     ) { }
 
     /*
@@ -85,31 +85,48 @@ export class TagMainContractEffects {
         ))
     ));
 /*
-    CreateTagPre$: Observable<Action> = createEffect( () => this.actions$.pipe(
-        ofType(fromAction.ActionTypes.CREATE_TAG_PRE),
-        map((action: fromAction.CreateTagPre) => action.payload),
+    CreateTag$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.CREATE_TAG),
+        map((action: fromAction.CreateTag) => action.payload),
         //ONGOING: SEE BATCHING OF ACTIONS!!
         //https://gitlab.com/linagora/petals-cockpit/blob/master/frontend/src/app/shared/helpers/batch-actions.helper.ts#L34-42
         //How to use: https://github.com/xipheCom/ngrx-batch-action-reducer
-        //exhaustMap((payload: TagCreationData) => [new fromActionEth.InitEth(), new fromAction.CreateTag(payload)]),
+        //exhaustMap((payload: TagCreationData) => [new fromActionEth.InitEth(), new fromAction.CreateTagInt(payload)]),
         //map((payload: TagCreationData) => new fromActionEth.InitEth()),
         //ofType(fromActionEth.ActionTypes.INIT_ETH_SUCCESS),
-        //switchMap((payload: TagCreationData) => [new fromAction.CreateTag(payload)]),
-        map((payload: TagCreationData) => new Batch([new fromAction.CreateTag(payload)])),
+        //switchMap((payload: TagCreationData) => [new fromAction.CreateTagInt(payload)]),
+        map((payload: TagCreationData) => new Batch([new fromAction.CreateTagInt(payload)])),
         /*
         switchMap((payload: TagCreationData) => [
             new fromActionEth.InitEth(),
-            new fromAction.CreateTag(payload),
+            new fromAction.CreateTagInt(payload),
         ] ),
          */
 /*
         catchError(err => of(new fromAction.EthError(err)))
     ));
 */
+    CreateTag$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.CREATE_TAG),
+        map((action: fromAction.CreateTag) => action.payload),
+        //switchMap((payload: TagCreationData) => [new fromAction.CreateTagInt(payload)])),
+        switchMap((payload: TagCreationData) => [new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(payload)), new fromActionEth.InitEth()])),
+
+        catchError(err => of(new fromAction.EthError(err)))
+    );
+
+    CreateTagIntSuccess$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.CREATE_TAG_INTERNAL_SUCCESS),
+        map((action: fromAction.CreateTagIntSuccess) => action.payload),
+        //Handle the Internal CreationTag event success, and convert it into the public event CreateTagSuccess
+        switchMap((payload: TagCreationData) => [new fromAction.CreateTagSuccess(payload)])),
+        catchError(err => of(new fromAction.EthError(err)))
+    );
+
     InitEthSuccessActionsAwaiting$: Observable<Action> = createEffect( () => this.ethActions$.pipe(
         ofType(fromActionEth.ActionTypes.INIT_ETH_SUCCESS),
         concatMap(action => of(action).pipe(
-            withLatestFrom(this.taggedContractStore.pipe(select(fromTagMainContract.getActionsWaitingForEthInit)))
+            withLatestFrom(this.taggedContractStore.pipe(select(getActionsWaitingForEthInit)))
         )),
         switchMap(([action, actionsWaitingForEthInit]) => {
             console.log("User Wallet correctly connected.");
@@ -124,28 +141,28 @@ export class TagMainContractEffects {
     ));
 
 
-    CreateTag$: Observable<Action> = createEffect( () => this.actions$.pipe(
-        ofType(fromAction.ActionTypes.CREATE_TAG),
-        map((action: fromAction.CreateTag) => action.payload),
+    CreateTagInt$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.CREATE_TAG_INTERNAL),
+        map((action: fromAction.CreateTagInt) => action.payload),
         switchMap((payload: TagCreationData ) => this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
-            map((result: any) => new fromAction.CreateTagSuccess(result)),
+            map((result: any) => new fromAction.CreateTagIntSuccess(result)),
             catchError(err => of(new fromAction.EthError(err)))
         ))
     ));
 
-    /*
-        @Effect()
-        SetAttack$: Observable<Action> = this.actions$.pipe(
-            ofType(fromAction.ActionTypes.SET_ATTACK),
-            map((action: fromAction.SetAttack) => action.payload),
-            exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
-                tap(result => console.log('result', result)),
-                // retrieve the log information that will contain the event data.
-                map(result => result.logs[0].args[0]),
-                map((newName: string) => new fromAction.SetAttackSuccess(newName)),
-                catchError(err => of(new fromAction.EthError(err)))
-            )),
-        );
-    */
+        /*
+            @Effect()
+            SetAttack$: Observable<Action> = this.actions$.pipe(
+                ofType(fromAction.ActionTypes.SET_ATTACK),
+                map((action: fromAction.SetAttack) => action.payload),
+                exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
+                    tap(result => console.log('result', result)),
+                    // retrieve the log information that will contain the event data.
+                    map(result => result.logs[0].args[0]),
+                    map((newName: string) => new fromAction.SetAttackSuccess(newName)),
+                    catchError(err => of(new fromAction.EthError(err)))
+                )),
+            );
+        */
 
 }

@@ -8,13 +8,13 @@ import {Observable, of} from 'rxjs';
 import {debounceTime, filter, first, map, shareReplay, startWith, switchMap, take, tap} from 'rxjs/operators';
 import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
-import * as fromTagMainContract from '../app/tagmaincontract';
+import * as fromTagMainContract from './tagmaincontract';
 import {Tag} from "./tags/tags.model";
 import {TagCreationDialogComponent} from "./creation/dialog/tag-creation-dialog.component";
 import {TagCreationData} from "./creation/tag-creation-data";
 import {batchActions} from "./helpers/batch-actions.helper";
 import * as fromActionEth from "./ethereum/eth.actions";
-import * as fromAction from "./tagmaincontract/tag-main-contract.actions";
+import * as fromAction from "./tagmaincontract/tag-main-contract.actions"; /* Gives error in IDE, but works fine! */
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 
 
@@ -187,8 +187,8 @@ export class AppComponent {
                 console.log(`Cost to create: ${result.tagCreationCost}`);
                 //Launch event to create tag in ethereum network:
                 //We will have to initialize also athe Ethereum network if not enabled yet:
-                //this.ethStore.dispatch(new fromTagMainContract.CreateTagPre(result));
-                //this.ethStore.dispatch(batchActions([new fromActionEth.InitEth(), new fromAction.CreateTag(result)]));
+                //this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
+                //this.ethStore.dispatch(batchActions([new fromActionEth.InitEth(), new fromAction.CreateTagInt(result)]));
                 //!! Humm not interesting! Don't just want to reduce! Need to really call an action and another that depends on the success of that one!
                 /*
                 const initEthereum$ = createEffect(() => this.ethActions$.pipe(
@@ -196,16 +196,17 @@ export class AppComponent {
                     //take(1),
                     tap(() => {
                         console.log('SPECIAL EFFECT DIALOG: DETECTED INIT_ETH_SUCCESS');
-                        this.ethStore.dispatch(new fromAction.CreateTag(result));
+                        this.ethStore.dispatch(new fromAction.CreateTagInt(result));
                     })
                     )
                 , { dispatch: false});
 
                 this.ethStore.dispatch(new fromActionEth.InitEth());
                  */
-                //this.ethStore.dispatch(batchActions([new fromAction.StoreActionUntilEthInited(new fromAction.CreateTag(result)), new fromActionEth.InitEth()]));
-                this.ethStore.dispatch(new fromAction.StoreActionUntilEthInited(new fromAction.CreateTag(result)));
-                this.ethStore.dispatch(new fromActionEth.InitEth());
+                //this.ethStore.dispatch(batchActions([new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)), new fromActionEth.InitEth()]));
+                //this.ethStore.dispatch(new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)));
+                //this.ethStore.dispatch(new fromActionEth.InitEth());
+                this.ethStore.dispatch(new fromAction.CreateTag(result));
 
                 //Hide button for creation, as one creation is already in progress:
                 this._creationAvailable = false;
