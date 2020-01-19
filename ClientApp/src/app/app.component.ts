@@ -148,8 +148,6 @@ export class AppComponent {
                 console.log('No New Value. No creation!');
                 this._creationAvailable = false;
             }
-            //TODO
-            //...
         }
       this._currentTagName = value;
   }
