@@ -6,7 +6,7 @@ import {Action, select, Store} from '@ngrx/store';
 import {merge, Observable, of} from 'rxjs';
 
 import * as fromAction from './tag-main-contract.actions.internal';
-import {NotificationType} from './tag-main-contract.actions.internal';
+import {EventType, NotificationType} from './tag-main-contract.actions.internal';
 import * as fromActionEth from '../ethereum/eth.actions';
 // RXJS
 import {catchError, concatMap, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
@@ -145,14 +145,21 @@ export class TagMainContractEffects {
             merge(
                 this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
                     map((result: any) => new fromAction.CreateTagIntSuccess(result)),
-                    catchError(err => of(new fromAction.EthError(err)))),
-                of(new fromAction.NotifyUser({type: NotificationType.INFO, msg: `New Transaction to create new tag ${payload.tagName} sent to Ethereum network.`})) //Send also notification that new transaction was sent to Ethereum network!
+                    catchError(err => of(new fromAction.EthError(`Error creating tag '${payload.tagName}': ${err}`))))
+                /*,
+                this.tagMainContractService.watchForEvent(
+                    EventType.CREATION,
+                    payload.tagName,
+                    new fromAction.NotifyUser({type: NotificationType.INFO, msg: `New Transaction to create new tag ${payload.tagName} sent to Ethereum network.`})
+                )
+                 */
+                //of(new fromAction.NotifyUser({type: NotificationType.INFO, msg: `New Transaction to create new tag ${payload.tagName} sent to Ethereum network.`})) //Send also notification that new transaction was sent to Ethereum network!
                 //TODO: Doesn't appear to be working as expected!! Log message appears even if the user doesn't allow the transaction in metamask! but at least it only shows after the user has connected the wallet!
             )
         )
     ));
 
-    TestAction$: Observable<Action> = createEffect(() => this.actions$.pipe(
+    NotifyUserAction$: Observable<Action> = createEffect(() => this.actions$.pipe(
                     ofType(fromAction.ActionTypes.NOTIFY_USER),
                     tap((action) => console.log("NOTIFY: Inform user of message: " + action.payload.msg))
                     //TODO: To do on reduce: Add message to variable on store! Variable would keep all messages currently showing on screen, that the user has not cleared yet!
@@ -160,6 +167,13 @@ export class TagMainContractEffects {
         {
                     dispatch: false
                }
+    );
+
+    EthErrorDetectedAction$: Observable<Action> = createEffect(() => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.ETH_ERROR),
+        map((action) => new fromAction.NotifyUser({type: NotificationType.ERR, msg: `${action.payload}`}))
+        //TODO: To do on reduce: Add message to variable on store! Variable would keep all messages currently showing on screen, that the user has not cleared yet!
+        )
     );
 
     /*

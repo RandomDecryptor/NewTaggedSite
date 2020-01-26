@@ -1,34 +1,23 @@
 /*
 	@2019 FC. All rights reserved.
 */
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {concat, merge, Observable, of} from 'rxjs';
-import {
-    debounceTime,
-    filter,
-    first,
-    map,
-    mergeAll,
-    mergeMap,
-    shareReplay,
-    startWith,
-    switchMap,
-    take,
-    tap
-} from 'rxjs/operators';
-import {Store, select} from "@ngrx/store";
+import {Observable, of} from 'rxjs';
+import {debounceTime, first, map, startWith, switchMap} from 'rxjs/operators';
+import {select, Store} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from './tagmaincontract';
+import {NotificationType} from './tagmaincontract';
 import {Tag} from "./tags/tags.model";
 import {TagCreationDialogComponent} from "./creation/dialog/tag-creation-dialog.component";
 import {TagCreationData} from "./creation/tag-creation-data";
-import {batchActions} from "./helpers/batch-actions.helper";
 import * as fromActionEth from "./ethereum/eth.actions";
 import * as fromAction from "./tagmaincontract/tag-main-contract.actions"; /* Gives error in IDE, but works fine! */
-import {Actions, createEffect, ofType} from "@ngrx/effects";
+import {Actions} from "@ngrx/effects";
 
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
   selector: 'app-root',
@@ -44,7 +33,12 @@ export class AppComponent {
   ]);
   filteredOptions: Observable<string[][]>;
 
-  constructor(private ethStore: Store<fromEth.AppState>, private taggedContractStore: Store<fromTagMainContract.AppState>, private _dialogService: MatDialog, private ethActions$: Actions<fromActionEth.EthActionsUnion>) {
+  constructor(private ethStore: Store<fromEth.AppState>,
+              private taggedContractStore: Store<fromTagMainContract.AppState>,
+              private _dialogService: MatDialog,
+              private ethActions$: Actions<fromActionEth.EthActionsUnion>,
+              //private _snackBar: MatSnackBar,
+              private _toastrService: ToastrService) {
   }
 
     static readonly debounceTimeCreationTagButton = 1000;
@@ -58,6 +52,8 @@ export class AppComponent {
     private tagTransferCost$: Observable<string>;
 
     private tags: Tag[]; //Not Observable here, because we want the tags available at the moment, and not await for them or subscribe to them!
+
+    private userNotifications$: Observable<fromTagMainContract.UserNotif[]>;
 
     private _creationAvailable = false;
 
@@ -97,6 +93,8 @@ export class AppComponent {
                                     );
         this.tagTransferCost$ = this.taggedContractStore.pipe(select(fromTagMainContract.getTagTransferCost));
 
+        this.userNotifications$ = this.taggedContractStore.pipe(select(fromTagMainContract.getUserNotifications));
+
         this.taggedContractStore
             .pipe(
                 select(fromTagMainContract.getTaggingCost)
@@ -113,6 +111,39 @@ export class AppComponent {
                 console.log('Tags: ' + tags);
                 //Will keep field tags always updated with the latest version of the already created tags:
                 this.tags = tags;
+            });
+
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getLastUserNotification)
+            )
+            .subscribe((userNotif: fromTagMainContract.UserNotif) => {
+                if(userNotif) { //Check if we have any notification to show!
+                    //console.log(`Last User Notif: ${userNotif.uid} - ${userNotif.type} - ${userNotif.msg}`);
+                    //Will keep field tags always updated with the latest version of the already created tags:
+                    /*
+                    this._snackBar.open(userNotif.msg, "Dismiss", {
+                        duration: 10000 , // 10 seconds
+                        panelClass: this._retrievePanelClassSnackBar(userNotif.type)
+                    });
+                    */
+                    const defaultNotifConfig = {
+                        timeOut: 100000,
+                        tapToDismiss: false,
+                        positionClass: 'toast-bottom-full-width',
+                        extendedTimeOut: 5000, //If the user hovers the notification, wait for more 5 seconds!
+                        closeButton: true,
+                    };
+                    if(userNotif.type === NotificationType.ERR) {
+                        this._toastrService.error(userNotif.msg, undefined, defaultNotifConfig);
+                    }
+                    else if(userNotif.type === NotificationType.WARN) {
+                        this._toastrService.warning(userNotif.msg, undefined, defaultNotifConfig);
+                    }
+                    else {
+                        this._toastrService.info(userNotif.msg, undefined, defaultNotifConfig);
+                    }
+                }
             });
 
         //Try to get information from contract from Web3 provider it if exists:
@@ -271,4 +302,5 @@ export class AppComponent {
   changeDetected($event) {
     console.log('Field was Changed!!');
   }
+
 }

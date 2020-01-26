@@ -3,13 +3,15 @@ import {Injectable, Inject} from '@angular/core';
 import {SmartContract} from '../services/tokens';
 import {TruffleContract} from 'truffle-contract';
 
-import {Observable, of, from} from 'rxjs';
+import {Observable, of, from, EMPTY} from 'rxjs';
 import {map, tap, catchError, switchMap} from 'rxjs/operators';
 
 // Web3
 import {WEB3} from '../services/tokens';
 import Web3 from 'web3';
 import {Tag} from "../tags/tags.model";
+import {EventType} from "./tag-main-contract.actions.internal";
+import {Action} from "@ngrx/store";
 
 @Injectable()
 export class TagMainContractService {
@@ -169,4 +171,44 @@ export class TagMainContractService {
     }
 
 
+    watchForEvent(eventType: EventType, extra: any, action: Action): Observable<any> {
+        //Code based on: https://medium.com/pixelpoint/track-blockchain-transactions-like-a-boss-with-web3-js-c149045ca9bf
+        // Instantiate subscription object
+        const subscription = this.web3.eth.subscribe('pendingTransactions'); //TODO: Only can be done later on testnet or mainnet: https://github.com/MetaMask/metamask-extension/issues/6925
+
+        // Subscribe to pending transactions
+        subscription.subscribe((error, result) => {
+            if (error) console.log(error);
+            //TODO: ERROR: SubscriptionManager - unsupported subscription type \"newPendingTransactions\"
+        })
+        .on('data', async (txHash) => {
+            try {
+
+                // Get transaction details
+                const trx = await this.web3.eth.getTransaction(txHash);
+
+                // Check if transaction is the one we are awaiting or not:
+                const valid = this.validateExpectedTransaction(trx, eventType, this.web3.eth.defaultAccount, this._contractAddress, extra);
+                //If not the transaction we are awaiting return immediately:
+                if (!valid) return undefined;
+
+                console.log('Transaction hash is: ' + txHash + '\n');
+
+                // As we already have the transaction we wanted, unsubscribe from more transactions:
+                subscription.unsubscribe();
+
+                return action;
+            }
+            catch (error) {
+                console.log("Error watching pending transactions: " + error);
+            }
+        });
+
+        return EMPTY;
+    }
+
+    private validateExpectedTransaction(trx: any, eventType: EventType, from: string, to: string, extra: any): boolean {
+        debugger;
+        return false;
+    }
 }

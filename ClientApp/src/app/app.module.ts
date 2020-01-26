@@ -39,6 +39,8 @@ import { TagCreationDialogComponent } from './creation/dialog/tag-creation-dialo
 
 import { WeiToEtherPipe } from './pipes/wei-to-ether.pipe';
 
+import {ToastrModule} from "ngx-toastr";
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -62,6 +64,8 @@ import { WeiToEtherPipe } from './pipes/wei-to-ether.pipe';
         MatDividerModule,
         MatGridListModule,
         MatButtonModule,
+        //MatSnackBarModule,
+        ToastrModule.forRoot(), // ToastrModule added
 
         StoreModule.forRoot(reducers, {metaReducers}),
         EffectsModule.forRoot([]),

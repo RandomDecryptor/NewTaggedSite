@@ -48,6 +48,13 @@ export class NotifyUser implements Action {
     constructor(public payload: { type: NotificationType, msg: string}) {}
 }
 
+export interface UserNotif {
+    uid: number;
+    type: NotificationType;
+    msg: string;
+}
+
+
 export enum EventType {
     CREATION,
     TRANSFER,

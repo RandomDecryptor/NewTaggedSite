@@ -43,6 +43,13 @@
     <span>Tag Transfer Cost: {{ tagTransferCost$ | async | weiToEther }}<span *ngIf="(tagTransferCost$ | async)">  Eth</span></span><br/>
 </div>
 
+
+<div class="section section--tag">
+    <br/>
+    <div *ngFor="let userNotif of userNotifications$ | async"  >{{userNotif.uid}} - {{userNotif.type}} - {{userNotif.msg}}</div>
+</div>
+
+
 <div class="section section--tag">
   <h2>Tag Address</h2>
   <!-- NGX SELECT: Autocomplete -->

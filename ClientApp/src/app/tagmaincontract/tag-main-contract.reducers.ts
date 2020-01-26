@@ -2,6 +2,8 @@ import * as tagMainContractActions from './tag-main-contract.actions.internal';
 import {ActionReducerMap, createSelector, createFeatureSelector, Action} from '@ngrx/store';
 import * as root from '../reducers';
 import {Tag} from "../tags/tags.model";
+import {UserNotif} from "./tag-main-contract.actions.internal";
+
 
 // based on https://ngrx.io/guide/store/selectors
 export interface State {
@@ -11,6 +13,9 @@ export interface State {
     tagTransferCost: string;
     tags: Tag[];
     actionsWaitingForEthInit: Action[];
+    userNotifications: tagMainContractActions.UserNotif[];
+    lastUserNotification: UserNotif;
+    uid: number;
 }
 
 
@@ -21,6 +26,9 @@ const initialState: State = {
     tagTransferCost: null,
     tags: [],
     actionsWaitingForEthInit: [],
+    userNotifications: [],
+    lastUserNotification: null,
+    uid: 0,
 };
 
 
@@ -55,6 +63,12 @@ export const reducer = (state = initialState, action: tagMainContractActions.Tag
 
         case (tagMainContractActions.ActionTypes.CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED): {
             return {...state, actionsWaitingForEthInit: []};
+        }
+
+        case (tagMainContractActions.ActionTypes.NOTIFY_USER): {
+            const newUid = state.uid + 1;
+            const newUserNotif: UserNotif = { type: action.payload.type, msg: action.payload.msg, uid: newUid };
+            return {...state, userNotifications: [...state.userNotifications, newUserNotif ], uid: newUid, lastUserNotification: newUserNotif};
         }
 
         case (tagMainContractActions.ActionTypes.ETH_ERROR): {
@@ -93,4 +107,6 @@ export const getTagCreationCost = createSelector(getTagMainContractState, (state
 export const getTagTransferCost = createSelector(getTagMainContractState, (state: State) => state.tagTransferCost);
 export const getAllTags = createSelector(getTagMainContractState, (state: State) => state.tags);
 export const getActionsWaitingForEthInit = createSelector(getTagMainContractState, (state: State) => state.actionsWaitingForEthInit);
+export const getUserNotifications = createSelector(getTagMainContractState, (state: State) => state.userNotifications);
+export const getLastUserNotification = createSelector(getTagMainContractState, (state: State) => state.lastUserNotification);
 
