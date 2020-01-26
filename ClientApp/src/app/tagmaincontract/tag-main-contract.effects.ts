@@ -145,7 +145,11 @@ export class TagMainContractEffects {
             merge(
                 this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
                     map((result: any) => new fromAction.CreateTagIntSuccess(result)),
-                    catchError(err => of(new fromAction.EthError(`Error creating tag '${payload.tagName}': ${err}`))))
+                    catchError(err => {
+                        const msgExtracted = err['message'] ? err['message'] : err;
+                        return of(new fromAction.EthError(`Error creating tag '${payload.tagName}': ${msgExtracted}`));
+                    })
+                )
                 /*,
                 this.tagMainContractService.watchForEvent(
                     EventType.CREATION,
