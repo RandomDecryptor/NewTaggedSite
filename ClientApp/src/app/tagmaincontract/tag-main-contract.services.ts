@@ -54,8 +54,6 @@ export class TagMainContractService {
 
 
     public getTaggingByCreatorCost(): Observable<string> {
-        //TODO: Remove .at from here! and store the retrieve contract somewhere! Only access it the first time! Maybe keep it here inside the service, but only retrieve it the first time, then
-        //keep it somewhere for storage!
         return this.getSmartContract().pipe(
             switchMap((instance: any) => from<string>(instance.getTaggingByCreatorPrice())),
             tap(cost => console.log("Tagging By Creator Cost Gotten: " + cost)),
@@ -96,8 +94,12 @@ export class TagMainContractService {
      */
     public createTag(tagName: string, symbolName: string, tagCreationCost: string): Observable<string> {
         const gasLimit = 6000000;
+        //To get immediatly the Transaction Id without waiting for its approval, would have to do the following (from "https://ethereum.stackexchange.com/a/26314"):
+        //let txId = instance.registerTag.sendTransaction(PArams!!);
+        //Or using "PromiEvent", like .on('transactionHash' ... // .on('confirmation', directly in web3.eth.sendTransaction
         return this.getSmartContract().pipe(
             switchMap((instance: any) => from<string>(instance.registerTag(tagName, symbolName, TagMainContractService.ZERO_ADDRESS /* 0x0 Address */,  {from: this.web3.eth.defaultAccount, gas: gasLimit, value: tagCreationCost}))),
+            //On next methods, it's the result of final creation, with the block and event results of a successful creation:
             tap(value => console.log("Tag Creation Return: " + value)),
         );
     }

@@ -1,20 +1,17 @@
-import {Injectable, Inject} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {TagMainContractService} from './tag-main-contract.services';
-
 // NGRX
-import {Effect, Actions, ofType, createEffect} from '@ngrx/effects';
+import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Action, select, Store} from '@ngrx/store';
-import {Observable, of, from} from 'rxjs';
+import {merge, Observable, of} from 'rxjs';
 
 import * as fromAction from './tag-main-contract.actions.internal';
+import {NotificationType} from './tag-main-contract.actions.internal';
 import * as fromActionEth from '../ethereum/eth.actions';
-
 // RXJS
-import {tap, switchMap, exhaustMap, map, catchError, concatMap, withLatestFrom} from 'rxjs/operators';
-import {TagMainContractUnion} from "./tag-main-contract.actions.internal";
+import {catchError, concatMap, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {TagCreationData} from "../creation/tag-creation-data";
-import {Batch} from "../helpers/batch-actions.helper";
-import {AppState, getActionsWaitingForEthInit}  from './tag-main-contract.reducers';
+import {AppState, getActionsWaitingForEthInit} from './tag-main-contract.reducers';
 
 @Injectable()
 export class TagMainContractEffects {
@@ -144,25 +141,40 @@ export class TagMainContractEffects {
     CreateTagInt$: Observable<Action> = createEffect( () => this.actions$.pipe(
         ofType(fromAction.ActionTypes.CREATE_TAG_INTERNAL),
         map((action: fromAction.CreateTagInt) => action.payload),
-        switchMap((payload: TagCreationData ) => this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
-            map((result: any) => new fromAction.CreateTagIntSuccess(result)),
-            catchError(err => of(new fromAction.EthError(err)))
-        ))
+        switchMap((payload: TagCreationData ) =>
+            merge(
+                this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
+                    map((result: any) => new fromAction.CreateTagIntSuccess(result)),
+                    catchError(err => of(new fromAction.EthError(err)))),
+                of(new fromAction.NotifyUser({type: NotificationType.INFO, msg: `New Transaction to create new tag ${payload.tagName} sent to Ethereum network.`})) //Send also notification that new transaction was sent to Ethereum network!
+                //TODO: Doesn't appear to be working as expected!! Log message appears even if the user doesn't allow the transaction in metamask! but at least it only shows after the user has connected the wallet!
+            )
+        )
     ));
 
-        /*
-            @Effect()
-            SetAttack$: Observable<Action> = this.actions$.pipe(
-                ofType(fromAction.ActionTypes.SET_ATTACK),
-                map((action: fromAction.SetAttack) => action.payload),
-                exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
-                    tap(result => console.log('result', result)),
-                    // retrieve the log information that will contain the event data.
-                    map(result => result.logs[0].args[0]),
-                    map((newName: string) => new fromAction.SetAttackSuccess(newName)),
-                    catchError(err => of(new fromAction.EthError(err)))
-                )),
-            );
-        */
+    TestAction$: Observable<Action> = createEffect(() => this.actions$.pipe(
+                    ofType(fromAction.ActionTypes.NOTIFY_USER),
+                    tap((action) => console.log("NOTIFY: Inform user of message: " + action.payload.msg))
+                    //TODO: To do on reduce: Add message to variable on store! Variable would keep all messages currently showing on screen, that the user has not cleared yet!
+                ),
+        {
+                    dispatch: false
+               }
+    );
+
+    /*
+        @Effect()
+        SetAttack$: Observable<Action> = this.actions$.pipe(
+            ofType(fromAction.ActionTypes.SET_ATTACK),
+            map((action: fromAction.SetAttack) => action.payload),
+            exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
+                tap(result => console.log('result', result)),
+                // retrieve the log information that will contain the event data.
+                map(result => result.logs[0].args[0]),
+                map((newName: string) => new fromAction.SetAttackSuccess(newName)),
+                catchError(err => of(new fromAction.EthError(err)))
+            )),
+        );
+    */
 
 }

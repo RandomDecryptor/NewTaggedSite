@@ -19,6 +19,8 @@ export enum ActionTypes {
   CREATE_TAG_SUCCESS = '[Tag Main Contract] Create Tag Pre Success',
   STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] Store Action Until Connection to User Ethereum Wallet Allowed',
   CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] CLEAR Store Action Until Connection to User Ethereum Wallet Allowed',
+  NOTIFY_USER = '[Tag Main Contract] Notify User Action',
+  WATCH_FOR_EVENT = '[Tag Main Contract] Watch For Ethereum Network Event Action',
   ETH_ERROR = '[Tag Main Contract] Error',
 
 }
@@ -35,6 +37,28 @@ export class GetTaggingCostSuccess implements Action {
   constructor(public payload: string) {}
 }
 
+export enum NotificationType {
+    INFO,
+    WARN,
+    ERR
+}
+
+export class NotifyUser implements Action {
+    readonly type = ActionTypes.NOTIFY_USER;
+    constructor(public payload: { type: NotificationType, msg: string}) {}
+}
+
+export enum EventType {
+    CREATION,
+    TRANSFER,
+    TAGGING,
+    REMOVAL
+}
+
+export class WatchForEvent implements Action {
+    readonly type = ActionTypes.WATCH_FOR_EVENT;
+    constructor(public payload: { type: EventType, from: string, to: string, extra: any, action: Action}) {}
+}
 
 export class GetTaggingByCreatorCost implements Action {
     readonly type = ActionTypes.GET_TAGGING_BY_CREATOR_COST;
@@ -125,5 +149,6 @@ export type TagMainContractUnion =
     | CreateTagSuccess
     | StoreActionUntilEthInited
     | ClearStoredActionsWaitingForEthInit
+    | NotifyUser
     | EthError;
 

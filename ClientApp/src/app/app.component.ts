@@ -4,8 +4,20 @@
 import { Component } from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {Observable, of} from 'rxjs';
-import {debounceTime, filter, first, map, shareReplay, startWith, switchMap, take, tap} from 'rxjs/operators';
+import {concat, merge, Observable, of} from 'rxjs';
+import {
+    debounceTime,
+    filter,
+    first,
+    map,
+    mergeAll,
+    mergeMap,
+    shareReplay,
+    startWith,
+    switchMap,
+    take,
+    tap
+} from 'rxjs/operators';
 import {Store, select} from "@ngrx/store";
 import * as fromEth from '../app/ethereum';
 import * as fromTagMainContract from './tagmaincontract';
@@ -210,6 +222,16 @@ export class AppComponent {
                 this._creationAvailable = false;
             }
         });
+    }
+
+    testObservers() {
+        /*
+        of(2).pipe(
+            startWith(1)
+        ).subscribe((value) => console.log('Value: ' + value));
+         */
+        //merge(of(1), of(2)).subscribe((value) => console.log('Value: ' + value));
+
     }
 
   connectEthereum() {
