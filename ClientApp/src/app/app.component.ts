@@ -182,8 +182,8 @@ export class AppComponent {
         }
         else {
             //Tag not found: prepare for creation of new Tag:
-            console.log(`NO TAG Found: ${tagFound}. Prepare creation!`);
-            if(value && value.length > 0) {
+            console.log(`NO TAG Found in known tags: ${tagFound}. Prepare creation!`);
+            if(value && value.length > 0 && value.trim().length > 0) {
                 console.log('Has New Value. Really Prepare creation!');
                 this._creationAvailable = true;
             }
@@ -212,47 +212,59 @@ export class AppComponent {
     }
 
     openPopupCreation(value: any) {
-        let dialogRef = this._dialogService.open(TagCreationDialogComponent, {
-            data: {
-                tagName: this._currentTagName,
-                symbolName: this._currentTagName,
-                tagCreationCost: value
+        if(this._currentTagName) {
+            if(this._currentTagName.length > 51) {
+                this._currentTagName = this._currentTagName.substr(0, 51);
             }
-        });
-        dialogRef.afterClosed().subscribe((result: TagCreationData)  => {
-            if(result) {
-                //The dialog was closed as a OK!
-                //Continue processing as expected:
-                console.log(`Tag name to create: ${result.tagName}`);
-                console.log(`Symbol name to create: ${result.symbolName}`);
-                console.log(`Cost to create: ${result.tagCreationCost}`);
-                //Launch event to create tag in ethereum network:
-                //We will have to initialize also athe Ethereum network if not enabled yet:
-                //this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
-                //this.ethStore.dispatch(batchActions([new fromActionEth.InitEth(), new fromAction.CreateTagInt(result)]));
-                //!! Humm not interesting! Don't just want to reduce! Need to really call an action and another that depends on the success of that one!
-                /*
-                const initEthereum$ = createEffect(() => this.ethActions$.pipe(
-                    ofType(fromActionEth.ActionTypes.INIT_ETH_SUCCESS),
-                    //take(1),
-                    tap(() => {
-                        console.log('SPECIAL EFFECT DIALOG: DETECTED INIT_ETH_SUCCESS');
-                        this.ethStore.dispatch(new fromAction.CreateTagInt(result));
-                    })
-                    )
-                , { dispatch: false});
-
-                this.ethStore.dispatch(new fromActionEth.InitEth());
-                 */
-                //this.ethStore.dispatch(batchActions([new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)), new fromActionEth.InitEth()]));
-                //this.ethStore.dispatch(new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)));
-                //this.ethStore.dispatch(new fromActionEth.InitEth());
-                this.ethStore.dispatch(new fromAction.CreateTag(result));
-
-                //Hide button for creation, as one creation is already in progress:
-                this._creationAvailable = false;
+            this._currentTagName = this._currentTagName.trim();
+            let symbolName = this._currentTagName;
+            if(symbolName && symbolName.length > 16) {
+                symbolName = symbolName.substr(0, 16);
             }
-        });
+            symbolName = symbolName.trim();
+
+            let dialogRef = this._dialogService.open(TagCreationDialogComponent, {
+                data: {
+                    tagName: this._currentTagName,
+                    symbolName: symbolName,
+                    tagCreationCost: value
+                }
+            });
+            dialogRef.afterClosed().subscribe((result: TagCreationData) => {
+                if (result) {
+                    //The dialog was closed as a OK!
+                    //Continue processing as expected:
+                    console.log(`Tag name to create: ${result.tagName}`);
+                    console.log(`Symbol name to create: ${result.symbolName}`);
+                    console.log(`Cost to create: ${result.tagCreationCost}`);
+                    //Launch event to create tag in ethereum network:
+                    //We will have to initialize also athe Ethereum network if not enabled yet:
+                    //this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
+                    //this.ethStore.dispatch(batchActions([new fromActionEth.InitEth(), new fromAction.CreateTagInt(result)]));
+                    //!! Humm not interesting! Don't just want to reduce! Need to really call an action and another that depends on the success of that one!
+                    /*
+                    const initEthereum$ = createEffect(() => this.ethActions$.pipe(
+                        ofType(fromActionEth.ActionTypes.INIT_ETH_SUCCESS),
+                        //take(1),
+                        tap(() => {
+                            console.log('SPECIAL EFFECT DIALOG: DETECTED INIT_ETH_SUCCESS');
+                            this.ethStore.dispatch(new fromAction.CreateTagInt(result));
+                        })
+                        )
+                    , { dispatch: false});
+
+                    this.ethStore.dispatch(new fromActionEth.InitEth());
+                     */
+                    //this.ethStore.dispatch(batchActions([new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)), new fromActionEth.InitEth()]));
+                    //this.ethStore.dispatch(new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)));
+                    //this.ethStore.dispatch(new fromActionEth.InitEth());
+                    this.ethStore.dispatch(new fromAction.CreateTag(result));
+
+                    //Hide button for creation, as one creation is already in progress:
+                    this._creationAvailable = false;
+                }
+            });
+        }
     }
 
     testObservers() {

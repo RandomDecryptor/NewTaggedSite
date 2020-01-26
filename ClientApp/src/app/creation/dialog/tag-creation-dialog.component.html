@@ -2,11 +2,11 @@
 <div mat-dialog-content>
     <p>Tag Name:</p>
     <mat-form-field>
-        <input matInput [(ngModel)]="data.tagName">
+        <input matInput [(ngModel)]="data.tagName" maxlength="51" appRestrictTo="[a-zA-Z!#-&(-/:;=?@€£§{}´`~^_|«»0-9 ]|[\xc0-\xfe]|[[]|[\]]" oninput="this.value = this.value.toUpperCase()" >
     </mat-form-field>
     <p>Symbol Name:</p>
     <mat-form-field>
-        <input matInput [(ngModel)]="data.symbolName">
+        <input matInput [(ngModel)]="data.symbolName" maxlength="16" appRestrictTo="[a-zA-Z!#-&(-/:;=?@€£§{}´`~^_|«»0-9 ]|[\xc0-\xfe]|[[]|[\]]" oninput="this.value = this.value.toUpperCase()" >
     </mat-form-field>
     <p>Cost to create tag (Eth):</p>
     <mat-form-field>
