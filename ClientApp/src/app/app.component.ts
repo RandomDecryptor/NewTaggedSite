@@ -18,6 +18,7 @@ import * as fromAction from "./tagmaincontract/tag-main-contract.actions"; /* Gi
 import {Actions} from "@ngrx/effects";
 
 import {ToastrService} from 'ngx-toastr';
+import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.services";
 
 @Component({
   selector: 'app-root',
@@ -38,6 +39,7 @@ export class AppComponent {
               private _dialogService: MatDialog,
               private ethActions$: Actions<fromActionEth.EthActionsUnion>,
               //private _snackBar: MatSnackBar,
+              private tagContractService: TagContractService,
               private _toastrService: ToastrService) {
   }
 
@@ -110,7 +112,12 @@ export class AppComponent {
             .subscribe(tags => {
                 console.log('Tags: ' + tags);
                 //Will keep field tags always updated with the latest version of the already created tags:
-                this.tags = tags;
+                const clonedTags: Tag[] = tags.map((tag: Tag) => {
+                    return {    contractAddress: tag.contractAddress, creatorAddress: tag.creatorAddress, ownerBalance: tag.ownerBalance,
+                                totalTaggings: tag.totalTaggings, tagIndex: tag.tagIndex, tagId: tag.tagId, name: null, symbol: null };
+                });
+                this.tags = clonedTags;
+                this.fillInTagName(this.tags);
             });
 
         this.taggedContractStore
@@ -315,4 +322,14 @@ export class AppComponent {
     console.log('Field was Changed!!');
   }
 
+    private fillInTagName(tags: Tag[]) {
+        const tagsMissingName = tags.filter(value => !value.name);
+        tagsMissingName.forEach(tag => {
+            //Get name for each tag:
+            this.tagContractService.getName(tag.contractAddress).subscribe(name => {
+                console.log('Gotten tag name: ' + name);
+                tag.name = name;
+            });
+        });
+    }
 }

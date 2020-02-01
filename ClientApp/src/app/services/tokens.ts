@@ -4,6 +4,7 @@ import Web3 from 'web3';
 import { default as contract } from 'truffle-contract';
 import ContractAbi from '../../../../build/contracts/Tagged.json';
 
+import SimpleTagContractAbi from '../../../../build/contracts/Tag.json';
 
 export const WEB3 = new InjectionToken<Web3>('web3Token', {
   providedIn: 'root',
@@ -23,6 +24,12 @@ export const WEB3 = new InjectionToken<Web3>('web3Token', {
 export const SmartContract = new InjectionToken<contract>('smartContract', {
   providedIn: 'root',
   factory: () =>  contract(ContractAbi),
+
+});
+
+export const SimpleTagSmartContract = new InjectionToken<contract>('simpleTagSmartContract', {
+    providedIn: 'root',
+    factory: () =>  contract(SimpleTagContractAbi),
 
 });
 

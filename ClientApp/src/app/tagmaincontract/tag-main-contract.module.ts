@@ -11,6 +11,7 @@ import { TagMainContractEffects } from './tag-main-contract.effects';
 
 // Services
 import { TagMainContractService } from './tag-main-contract.services';
+import {TagContractService} from "./tagcontract/tag-contract.services";
 
 //import { AttackChangeComponent } from './components/attack-change/attack-change.component';
 
@@ -37,6 +38,6 @@ const routes: Routes = [
     StoreModule.forFeature('tagMainContractState', reducers),
     EffectsModule.forFeature([TagMainContractEffects])
   ],
-  providers: [TagMainContractService]
+  providers: [TagMainContractService, TagContractService]
 })
 export class TagMainContractModule { }
