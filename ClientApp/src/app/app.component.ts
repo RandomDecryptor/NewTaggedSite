@@ -4,12 +4,11 @@
 import {Component} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {Observable, of} from 'rxjs';
-import {debounceTime, first, map, startWith, switchMap} from 'rxjs/operators';
+import {Observable, of, ReplaySubject} from 'rxjs';
+import {debounceTime, first, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
-import * as fromEth from '../app/ethereum';
+import * as fromEth from './ethereum';
 import * as fromTagMainContract from './tagmaincontract';
-import {NotificationType} from './tagmaincontract';
 import {Tag} from "./tags/tags.model";
 import {TagCreationDialogComponent} from "./creation/dialog/tag-creation-dialog.component";
 import {TagCreationData} from "./creation/tag-creation-data";
@@ -19,6 +18,7 @@ import {Actions} from "@ngrx/effects";
 
 import {ToastrService} from 'ngx-toastr';
 import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.services";
+import {TagTaggingData} from "./tagging/tag-tagging-data";
 
 @Component({
   selector: 'app-root',
@@ -27,12 +27,8 @@ import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.ser
 })
 export class AppComponent {
   myControl = new FormControl();
-  options: Observable<string[][]> = of([['One', '1'], ['Two', '2'], ['Three', '3']
-    ,['Four', '4'], ['Five', '5'], ['Six', '6']
-    ,['Seven', '7'], ['Eight', '8'], ['Nine', '9']
-    ,['Ten', '10'], ['Eleven', '11'], ['Twelve', '12']
-  ]);
-  filteredOptions: Observable<string[][]>;
+  tagOptions: ReplaySubject<Tag[]>;
+  filteredOptions: Observable<Tag[]>;
 
   constructor(private ethStore: Store<fromEth.AppState>,
               private taggedContractStore: Store<fromTagMainContract.AppState>,
@@ -41,6 +37,7 @@ export class AppComponent {
               //private _snackBar: MatSnackBar,
               private tagContractService: TagContractService,
               private _toastrService: ToastrService) {
+      this.tagOptions = new ReplaySubject(1);
   }
 
     static readonly debounceTimeCreationTagButton = 1000;
@@ -59,21 +56,41 @@ export class AppComponent {
 
     private _creationAvailable = false;
 
-    private _currentTagName: string = "";
+    private _taggingAvailable = false;
+
+    private _currentTagName: string = ""; //Used for Creation (not existing Tag yet!)
+
+    private _currentTag: Tag = null; //Used for current selected already existing Tag
+
+    private _userAddress = null;
+
+    private _currentTaggingData: TagTaggingData = { addressToTag: null, taggingCost: null, tag: null };
 
     get creationAvailable() {
         return this._creationAvailable;
+    }
+
+    get taggingAvailable() {
+        return this._taggingAvailable;
     }
 
     get currentTagName() {
         return this._currentTagName;
     }
 
+    get currentTag() {
+        return this._currentTag;
+    }
+
+    get currentTaggingData() {
+        return this._currentTaggingData;
+    }
+
     ngOnInit() {
         this.filteredOptions = this.myControl.valueChanges
             .pipe(
                 startWith(''),
-                map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
+                map(value => typeof value === 'string' ? value : value.name), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
                 //map(value => this._filter(value))
                 switchMap(value => this._filter(value))
             );
@@ -82,7 +99,16 @@ export class AppComponent {
             .pipe(
                 startWith(''),
                 //TODO: Try filter by just string!
+                tap(value => {
+                    if(typeof value === 'string') {
+                        //Manual change to the value of tag name, disable tagging, user must select Tag in combobox to enable it:
+                        this._taggingAvailable = false;
+                    }
+                }),
                 map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
+                tap(() => {
+                    this._creationAvailable = false;
+                } ), //Disable creation button again until the debounce time passes and we have finally a new value to use!
                 debounceTime(AppComponent.debounceTimeCreationTagButton) //Wait 1 seconds to signal change in value
             ).subscribe(value => this._tagNameChanged(value));
 
@@ -141,10 +167,10 @@ export class AppComponent {
                         extendedTimeOut: 5000, //If the user hovers the notification, wait for more 5 seconds!
                         closeButton: true,
                     };
-                    if(userNotif.type === NotificationType.ERR) {
+                    if(userNotif.type === fromTagMainContract.NotificationType.ERR) {
                         this._toastrService.error(userNotif.msg, undefined, defaultNotifConfig);
                     }
-                    else if(userNotif.type === NotificationType.WARN) {
+                    else if(userNotif.type === fromTagMainContract.NotificationType.WARN) {
                         this._toastrService.warning(userNotif.msg, undefined, defaultNotifConfig);
                     }
                     else {
@@ -155,18 +181,25 @@ export class AppComponent {
 
         //Try to get information from contract from Web3 provider it if exists:
         this.ethStore.dispatch(new fromEth.InitEthConsult());
+
+        this.ethStore
+            .pipe(
+                select(fromEth.getDefaultAccount)
+            )
+            .subscribe(activeAccount => {
+                console.log('Active Account: ' + activeAccount);
+                this._userAddress = activeAccount;
+            });
     }
 
-  private _filter(value: string): Observable<string[][]> {
+  private _filter(value: string): Observable<Tag[]> {
     console.log('Value Filter: "' + value + '"');
     //Get Value:
-    //this.myControl.value
     const filterValue: string = value.toLowerCase();
 
-    //return this.options.filter(option => option[0].toLowerCase().includes(filterValue));
-    return this.options.pipe(
+    return this.tagOptions.pipe(
       map(
-          options => options.filter(option => option[0].toLowerCase().includes(filterValue))
+          options => options.filter(tag => (!tag.name && filterValue.length === 0) || (tag.name && tag.name.toLowerCase().includes(filterValue)))
       )
     );
   }
@@ -301,13 +334,22 @@ export class AppComponent {
         this.ethStore.dispatch(new fromTagMainContract.GetTaggingCost());
     }
 
-  displayFn(option?: string[]): string | undefined {
-    return option ? option[0] : undefined;
+  displayFn(option?: Tag): string | undefined {
+    return option ? option.name : undefined;
   }
 
-  selectionChanged($event: MatOptionSelectionChange, optionSelectedId: string) {
-    if($event.source.selected)
-      console.log('Options Selected: ' + optionSelectedId);
+  selectionChanged($event: MatOptionSelectionChange, optionSelected: Tag) {
+    if($event.source.selected) {
+        console.log('Options Selected: ' + optionSelected.name);
+        //An already existing tag was selected:
+        this._currentTag = optionSelected;
+        this.prepareTagging();
+    }
+    else {
+        console.log('Options Deselected: ' + optionSelected ? optionSelected.name : 'No Name');
+        //this._taggingAvailable = false;
+        //this._currentTag = null;
+    }
   }
 
   fieldCleared() {
@@ -329,7 +371,37 @@ export class AppComponent {
             this.tagContractService.getName(tag.contractAddress).subscribe(name => {
                 console.log('Gotten tag name: ' + name);
                 tag.name = name;
+                //We gotten an updated tag name, update also the tagOptions, so observers can render new tag name value:
+                this.tagOptions.next(this.tags);
             });
         });
     }
+
+    prepareTagging() {
+        if(this._currentTag) {
+            let cost = this.taggingCost$;
+            if(this._currentTag.creatorAddress === this._userAddress) {
+                cost = this.taggingByCreatorCost$;
+            }
+            this.processValue(cost, (value) => this.gotoTagging(value)); //Had to create Fat Arrow here to create an extra function, just to keep the correct "this"!
+
+        }
+    }
+
+    gotoTagging(value: any) {
+        if(this._currentTag) {
+            console.log(`Preparing tagging of Tag "${this._currentTag.name}" for "${value}" Wei`);
+            this._currentTaggingData.tag = this._currentTag;
+            this._currentTaggingData.taggingCost = value;
+            this._currentTaggingData.addressToTag = ''; //Clean address to tag field
+            this._taggingAvailable = true;
+        }
+    }
+
+    onTagging() {
+        if(this._currentTaggingData) {
+            console.log('Going to call Contract Tagging Function!');
+        }
+    }
+
 }

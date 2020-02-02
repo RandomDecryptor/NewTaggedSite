@@ -1,0 +1,28 @@
+<mat-divider></mat-divider>
+
+<mat-grid-list cols="1" rowHeight="21em">
+    <mat-grid-tile>
+        <form class="example-form">
+            <mat-grid-list cols="1" rowHeight="5em">
+                <mat-grid-tile>
+                        <mat-form-field class="example-full-width">
+                            <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
+                        </mat-form-field>
+                </mat-grid-tile>
+                <mat-grid-tile>
+                    <mat-form-field class="example-full-width">
+                        <input type="text" id="tagCost" matInput  placeholder="Tagging cost" aria-label="Tagging cost" readonly [value]="data.taggingCost" />
+                    </mat-form-field>
+                </mat-grid-tile>
+                <mat-grid-tile>
+                    <mat-form-field class="example-full-width">
+                        <input matInput id="addressToTag" name="addressToTag" [(ngModel)]="data.addressToTag" placeholder="Address to tag" aria-label="Address to tag"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
+                    </mat-form-field>
+                </mat-grid-tile>
+                <mat-grid-tile>
+                    <button mat-raised-button type="button" (click)="onTagging()" >Tag an address</button>
+                </mat-grid-tile>
+            </mat-grid-list>
+        </form>
+    </mat-grid-tile>
+</mat-grid-list>

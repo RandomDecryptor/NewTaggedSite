@@ -40,6 +40,7 @@ import { TagCreationDialogComponent } from './creation/dialog/tag-creation-dialo
 import { WeiToEtherPipe } from './pipes/wei-to-ether.pipe';
 
 import {ToastrModule} from "ngx-toastr";
+import {TaggingComponent} from "./tagging/panel/tagging.component";
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import {ToastrModule} from "ngx-toastr";
     RestrictToDirective,
     TagCreationDialogComponent,
     WeiToEtherPipe,
+    TaggingComponent,
   ],
     entryComponents: [
         TagCreationDialogComponent //Dialog component will be instanciated dynamically by the Dialog service!

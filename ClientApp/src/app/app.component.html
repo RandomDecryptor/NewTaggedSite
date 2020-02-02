@@ -16,18 +16,20 @@
           <!-- [a-zA-Z!#-&(-/:;=?@€£§{}[]´`~^_|«»0-9 ]|[\xc0-\xfe] -->
         <input type="text" id="testCampo" maxlength="51" appRestrictTo="[a-zA-Z!#-&(-/:;=?@€£§{}´`~^_|«»0-9 ]|[\xc0-\xfe]|[[]|[\]]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick a Tag Name" aria-label="Selected Tag Name" [formControl]="myControl" [matAutocomplete]="autoTagName" >
         <mat-autocomplete autoActiveFirstOption #autoTagName="matAutocomplete" [displayWith]="displayFn">
-          <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (onSelectionChange)="selectionChanged($event, option[1])" >{{option[0]}}</mat-option>
+          <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (onSelectionChange)="selectionChanged($event, option)" >{{option.name}}</mat-option>
         </mat-autocomplete>
       </mat-form-field>
     </form>
   </mat-grid-tile>
-    <mat-grid-tile>
+    <mat-grid-tile *ngIf="creationAvailable">
         <div *ngIf="creationAvailable">
             <button mat-raised-button type="button" (click)="onCreateNewTag()" >Create new tag "{{currentTagName}}"</button>
         </div>
     </mat-grid-tile>
 
 </mat-grid-list>
+
+<app-tagging-panel [data]="currentTaggingData" (toTag)="onTagging()" *ngIf="taggingAvailable"></app-tagging-panel>
 
 <button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
 <button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>
@@ -222,6 +224,6 @@
     - Only the user that does a tagging can remove it, that is, if address A has tagged address B previously, only address A can remove its tagging from address B.
     
     
-    In the future, through information gathered from the tagged addresses, we hope to help improve access to the Ethereum network, helping signaling dangerous or scammer addresses, so users avoid sending Ethereum (or other tokens) to those addresses.
+    In the future, through information gathered from the tagged addresses and with support from the Community, we hope to help improve access to the Ethereum network, helping signaling dangerous or scammer addresses, so users avoid sending Ethereum (or other tokens) to those addresses.
   </p>
 </div>

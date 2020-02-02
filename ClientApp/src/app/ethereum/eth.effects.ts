@@ -110,7 +110,7 @@ export class EthEffects {
         tap(value => console.log("Eth consultation init: " + value)),
         switchMap((action: fromAction.InitEthConsult) => {
 
-            if ('enable' in this.web3.currentProvider) {
+            if ('enable' in this.web3.currentProvider) { //web3.currentProvider === ethereum
 
                 //We set the provider already here, so we can access the smart contract GET methods (not possible the SET methods):
                 this.smartContract.setProvider(this.web3.currentProvider);
