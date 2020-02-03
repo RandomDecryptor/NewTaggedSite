@@ -17,7 +17,7 @@ export class RestrictToDirective {
         var re = RegExp(this.patternRestrictTo);
         var exclude = /Backspace|Enter|Tab|Delete|Del|ArrowUp|Up|ArrowDown|Down|ArrowLeft|Left|ArrowRight|Right/;
 
-        if (this.allowControlV && event.ctrlKey && event.key === 'v') {
+        if (this.allowControlV && event.ctrlKey && (event.key === 'v' || event.key === 'V')) {
             console.log('!!! Key DOWN: Allowed Control+V');
             return true;
         }
