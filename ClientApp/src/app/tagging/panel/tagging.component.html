@@ -1,29 +1,19 @@
 <mat-divider></mat-divider>
 
-<mat-grid-list  cols="1" rowHeight="15em">
-    <mat-grid-tile gdGridAlign="">
-        <form class="example-form">
-        <mat-list >
-            <h2 mat-subheader>Tagging an address with tag "{{data.tag.name}}"</h2>
-            <mat-list-item >
-                <mat-form-field class="example-full-width">
-                    <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
-                </mat-form-field>
-            </mat-list-item>
-            <mat-list-item >
-                <mat-form-field class="example-full-width">
-                    <input type="text" id="tagCost" matInput  placeholder="Tagging cost" aria-label="Tagging cost" readonly [value]="data.taggingCost" />
-                </mat-form-field>
-            </mat-list-item>
-            <mat-list-item >
-                <mat-form-field class="example-full-width">
-                    <input matInput id="addressToTag" name="addressToTag" [(ngModel)]="data.addressToTag" placeholder="Address to tag" aria-label="Address to tag"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
-                </mat-form-field>
-            </mat-list-item>
-            <mat-list-item *ngIf="data.addressToTag.length == 42" class="example-full-width">
-                <button mat-raised-button type="button" (click)="onTagging()" >Tag address "{{data.addressToTag}}"</button>
-            </mat-list-item>
-        </mat-list>
-        </form>
-    </mat-grid-tile>
-</mat-grid-list>
+<form  fxLayout="row " fxLayoutAlign="center center">
+    <div fxLayout="column " fxLayoutAlign="start center" fxLayoutGap="10px" class="example-form">
+        <h3 mat-subheader>Tagging an address with tag "{{data.tag.name}}"</h3>
+        <mat-form-field class="example-full-width">
+            <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
+        </mat-form-field>
+        <mat-form-field class="example-full-width">
+            <input type="text" id="tagCost" matInput  placeholder="Tagging cost" aria-label="Tagging cost" readonly [value]="data.taggingCost" />
+        </mat-form-field>
+        <mat-form-field class="example-full-width">
+            <input matInput id="addressToTag" name="addressToTag" [(ngModel)]="data.addressToTag" placeholder="Address to tag" aria-label="Address to tag"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
+        </mat-form-field>
+        <div  *ngIf="data.addressToTag.length == 42" >
+            <button mat-raised-button type="button" (click)="onTagging()" >Tag address "{{data.addressToTag}}"</button>
+        </div>
+    </div>
+</form>
