@@ -400,7 +400,7 @@ export class AppComponent {
 
     onTagging() {
         if(this._currentTaggingData) {
-            console.log('Going to call Contract Tagging Function!');
+            console.log(`Going to call Contract Tagging Function: ${this._currentTaggingData.addressToTag}`);
         }
     }
 
