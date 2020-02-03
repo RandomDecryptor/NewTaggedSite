@@ -10,8 +10,10 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule, MatListModule
 } from "@angular/material";
+
+import { FlexLayoutModule } from '@angular/flex-layout';
 
 // routing
 import { AppRoutingModule } from './app-routing.module';
@@ -52,7 +54,7 @@ import {TaggingComponent} from "./tagging/panel/tagging.component";
     TaggingComponent,
   ],
     entryComponents: [
-        TagCreationDialogComponent //Dialog component will be instanciated dynamically by the Dialog service!
+        TagCreationDialogComponent //Dialog component will be instantiated dynamically by the Dialog service!
     ],
     imports: [
         BrowserModule,
@@ -66,6 +68,7 @@ import {TaggingComponent} from "./tagging/panel/tagging.component";
         MatDividerModule,
         MatGridListModule,
         MatButtonModule,
+        FlexLayoutModule,
         //MatSnackBarModule,
         ToastrModule.forRoot(), // ToastrModule added
 
@@ -81,7 +84,8 @@ import {TaggingComponent} from "./tagging/panel/tagging.component";
 
         EthModule, //TODO: Maybe try to remove this from here!! Use the Router like the other example!
         TagMainContractModule, //TODO: Maybe try to remove this from here!! Use the Router like the other example!
-        MatDialogModule
+        MatDialogModule,
+        MatListModule
 
     ],
   providers: [],
