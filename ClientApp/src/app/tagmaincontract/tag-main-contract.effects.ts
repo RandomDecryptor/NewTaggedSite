@@ -12,6 +12,7 @@ import * as fromActionEth from '../ethereum/eth.actions';
 import {catchError, concatMap, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {TagCreationData} from "../creation/tag-creation-data";
 import {AppState, getActionsWaitingForEthInit} from './tag-main-contract.reducers';
+import {TagTaggingData} from "../tagging/tag-tagging-data";
 
 @Injectable()
 export class TagMainContractEffects {
@@ -116,7 +117,7 @@ export class TagMainContractEffects {
         ofType(fromAction.ActionTypes.CREATE_TAG_INTERNAL_SUCCESS),
         map((action: fromAction.CreateTagIntSuccess) => action.payload),
         //Handle the Internal CreationTag event success, and convert it into the public event CreateTagSuccess
-        switchMap((payload: TagCreationData) => [new fromAction.CreateTagSuccess(payload)])),
+        switchMap((payload: any) => [new fromAction.CreateTagSuccess(payload)])),
         catchError(err => of(new fromAction.EthError(err)))
     );
 
@@ -141,13 +142,57 @@ export class TagMainContractEffects {
     CreateTagInt$: Observable<Action> = createEffect( () => this.actions$.pipe(
         ofType(fromAction.ActionTypes.CREATE_TAG_INTERNAL),
         map((action: fromAction.CreateTagInt) => action.payload),
-        switchMap((payload: TagCreationData ) =>
+        switchMap((creationData: TagCreationData ) =>
             merge(
-                this.tagMainContractService.createTag(payload.tagName, payload.symbolName, payload.tagCreationCost).pipe(
-                    map((result: any) => new fromAction.CreateTagIntSuccess(result)),
+                this.tagMainContractService.createTag(creationData.tagName, creationData.symbolName, creationData.tagCreationCost).pipe(
+                    map((result: any) => new fromAction.CreateTagIntSuccess({data: creationData, result: result})),
                     catchError(err => {
                         const msgExtracted = err['message'] ? err['message'] : err;
-                        return of(new fromAction.EthError(`Error creating tag '${payload.tagName}': ${msgExtracted}`));
+                        return of(new fromAction.EthError(`Error creating tag '${creationData.tagName}': ${msgExtracted}`));
+                    })
+                )
+                /*,
+                this.tagMainContractService.watchForEvent(
+                    EventType.CREATION,
+                    payload.tagName,
+                    new fromAction.NotifyUser({type: NotificationType.INFO, msg: `New Transaction to create new tag ${payload.tagName} sent to Ethereum network.`})
+                )
+                 */
+                //of(new fromAction.NotifyUser({type: NotificationType.INFO, msg: `New Transaction to create new tag ${payload.tagName} sent to Ethereum network.`})) //Send also notification that new transaction was sent to Ethereum network!
+                //TODO: Doesn't appear to be working as expected!! Log message appears even if the user doesn't allow the transaction in metamask! but at least it only shows after the user has connected the wallet!
+            )
+        )
+    ));
+
+    /**
+     * Tagging an address effects
+     */
+    TaggingAddress$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.TAGGING_ADDRESS),
+        map((action: fromAction.TaggingAddress) => action.payload),
+        switchMap((payload: TagTaggingData) => [new fromAction.StoreActionUntilEthInited(new fromAction.TaggingAddressInt(payload)), new fromActionEth.InitEth()])),
+
+        catchError(err => of(new fromAction.EthError(err)))
+    );
+
+    TaggingAddressIntSuccess$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.TAGGING_ADDRESS_INTERNAL_SUCCESS),
+        map((action: fromAction.TaggingAddressIntSuccess) => action.payload),
+        //Handle the Internal TaggingAddress event success, and convert it into the public event TaggingAddressSuccess
+        switchMap((payload: any) => [new fromAction.TaggingAddressSuccess(payload)])),
+        catchError(err => of(new fromAction.EthError(err)))
+    );
+
+    TaggingAddressInt$: Observable<Action> = createEffect( () => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.TAGGING_ADDRESS_INTERNAL),
+        map((action: fromAction.TaggingAddressInt) => action.payload),
+        switchMap((taggingData: TagTaggingData ) =>
+            merge(
+                this.tagMainContractService.taggingAddress(taggingData.tag.tagId, taggingData.addressToTag, taggingData.taggingCost).pipe(
+                    map((result: any) => new fromAction.TaggingAddressIntSuccess({data: taggingData, result: result})),
+                    catchError(err => {
+                        const msgExtracted = err['message'] ? err['message'] : err;
+                        return of(new fromAction.EthError(`Error tagging address '${taggingData.addressToTag}' with tag '${taggingData.tag.name}': ${msgExtracted}`));
                     })
                 )
                 /*,

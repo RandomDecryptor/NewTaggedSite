@@ -37,18 +37,23 @@ import {EthModule} from "./ethereum/eth.module";
 import {environment} from "../environments/environment";
 import {TagMainContractModule} from "./tagmaincontract/tag-main-contract.module";
 import { RestrictToDirective } from './inputs/restrict-to.directive';
+import { ColorizeAddressPipe } from "./colorize/colorize-address.pipe";
 import { TagCreationDialogComponent } from './creation/dialog/tag-creation-dialog.component';
 
 import { WeiToEtherPipe } from './pipes/wei-to-ether.pipe';
 
 import {ToastrModule} from "ngx-toastr";
 import {TaggingComponent} from "./tagging/panel/tagging.component";
+import {EscapeHtmlPipe} from "./pipes/keep-html.pipe";
+import {ContrastCheckerService} from "./colorize/contrast-checker.service";
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     RestrictToDirective,
+    ColorizeAddressPipe,
+    EscapeHtmlPipe,
     TagCreationDialogComponent,
     WeiToEtherPipe,
     TaggingComponent,
@@ -88,7 +93,9 @@ import {TaggingComponent} from "./tagging/panel/tagging.component";
         MatListModule
 
     ],
-  providers: [],
+  providers: [
+      ContrastCheckerService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 import {Tag} from "../tags/tags.model";
 import {TagCreationData} from "../creation/tag-creation-data";
+import {TagTaggingData} from "../tagging/tag-tagging-data";
 
 export enum ActionTypes {
   GET_TAGGING_COST = '[Tag Main Contract] Get Tagging Cost',
@@ -17,6 +18,10 @@ export enum ActionTypes {
   CREATE_TAG_INTERNAL_SUCCESS = '[Tag Main Contract] Create Tag Internal Success',
   CREATE_TAG = '[Tag Main Contract] Create Tag Pre',
   CREATE_TAG_SUCCESS = '[Tag Main Contract] Create Tag Pre Success',
+  TAGGING_ADDRESS_INTERNAL = '[Tag Main Contract] Tagging Address Internal',
+  TAGGING_ADDRESS_INTERNAL_SUCCESS = '[Tag Main Contract] Tagging Address Internal Success',
+  TAGGING_ADDRESS = '[Tag Main Contract] Tagging Address',
+  TAGGING_ADDRESS_SUCCESS = '[Tag Main Contract] Tagging Address Success',
   STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] Store Action Until Connection to User Ethereum Wallet Allowed',
   CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] CLEAR Store Action Until Connection to User Ethereum Wallet Allowed',
   NOTIFY_USER = '[Tag Main Contract] Notify User Action',
@@ -112,7 +117,7 @@ export class CreateTag implements Action {
 
 export class CreateTagSuccess implements Action {
     readonly type = ActionTypes.CREATE_TAG_SUCCESS;
-    constructor(public payload: any) {}
+    constructor(public payload: { data: TagCreationData, result: any }) {}
 }
 
 export class CreateTagInt implements Action {
@@ -122,7 +127,27 @@ export class CreateTagInt implements Action {
 
 export class CreateTagIntSuccess implements Action {
     readonly type = ActionTypes.CREATE_TAG_INTERNAL_SUCCESS;
-    constructor(public payload: any) {}
+    constructor(public payload: { data: TagCreationData, result: any } ) {}
+}
+
+export class TaggingAddress implements Action {
+    readonly type = ActionTypes.TAGGING_ADDRESS;
+    constructor(public payload: TagTaggingData) {}
+}
+
+export class TaggingAddressSuccess implements Action {
+    readonly type = ActionTypes.TAGGING_ADDRESS_SUCCESS;
+    constructor(public payload: { data: TagTaggingData, result: any }) {}
+}
+
+export class TaggingAddressInt implements Action {
+    readonly type = ActionTypes.TAGGING_ADDRESS_INTERNAL;
+    constructor(public payload: TagTaggingData) {}
+}
+
+export class TaggingAddressIntSuccess implements Action {
+    readonly type = ActionTypes.TAGGING_ADDRESS_INTERNAL_SUCCESS;
+    constructor(public payload: { data: TagTaggingData, result: any }) {}
 }
 
 export class StoreActionUntilEthInited implements Action {
@@ -154,6 +179,10 @@ export type TagMainContractUnion =
     | CreateTagIntSuccess
     | CreateTag
     | CreateTagSuccess
+    | TaggingAddressInt
+    | TaggingAddressIntSuccess
+    | TaggingAddress
+    | TaggingAddressSuccess
     | StoreActionUntilEthInited
     | ClearStoredActionsWaitingForEthInit
     | NotifyUser

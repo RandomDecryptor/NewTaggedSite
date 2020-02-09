@@ -211,4 +211,22 @@ export class TagMainContractService {
         debugger;
         return false;
     }
+
+    /**
+     * Tagging an address specified by the user with a certain tag.
+     * NOTE: Needs to have access to use users wallet!
+     */
+    public taggingAddress(tagId: number, addressToTag: string, taggingCost: string): Observable<string> {
+        const gasLimit = 6000000;
+        //To get immediatly the Transaction Id without waiting for its approval, would have to do the following (from "https://ethereum.stackexchange.com/a/26314"):
+        //let txId = instance.registerTag.sendTransaction(PArams!!);
+        //Or using "PromiEvent", like .on('transactionHash' ... // .on('confirmation', directly in web3.eth.sendTransaction
+        return this.getSmartContract().pipe(
+            switchMap((instance: any) => from<string>(instance.tagItById(tagId, addressToTag, TagMainContractService.ZERO_ADDRESS /* 0x0 Address */,  {from: this.web3.eth.defaultAccount, gas: gasLimit, value: taggingCost}))),
+            //On next methods, it's the result of final creation, with the block and event results of a successful creation:
+            tap(value => console.log("Tagging address return: " + value)),
+        );
+
+    }
+
 }

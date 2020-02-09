@@ -19,6 +19,8 @@ import {Actions} from "@ngrx/effects";
 import {ToastrService} from 'ngx-toastr';
 import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.services";
 import {TagTaggingData} from "./tagging/tag-tagging-data";
+import {NotificationType} from "./tagmaincontract";
+import {create} from "domain";
 
 @Component({
   selector: 'app-root',
@@ -144,6 +146,37 @@ export class AppComponent {
                 });
                 this.tags = clonedTags;
                 this.fillInTagName(this.tags);
+            });
+
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getCreatedTag)
+            )
+            .subscribe(createdTagPayload => {
+                if(createdTagPayload) {
+                    const {creationAddressData, result } = { creationAddressData: createdTagPayload.data, result: createdTagPayload.result};
+                    console.log(`Created Tag '${creationAddressData.tagName}' in transaction '${result.tx}'` );
+                    this.taggedContractStore.dispatch(new fromAction.NotifyUser({
+                        type: NotificationType.INFO,
+                        msg: `Created Tag: ${creationAddressData.tagName}`
+                    }));
+                }
+            });
+
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getTaggedAddress)
+            )
+            .subscribe(taggedAddressPayload => {
+                if(taggedAddressPayload) {
+                    const {taggedAddressData, result } = { taggedAddressData: taggedAddressPayload.data, result: taggedAddressPayload.result};
+                    console.log(`Tagged Address '${taggedAddressData.addressToTag}' in transaction '${result.tx}'`);
+                    this.taggedContractStore.dispatch(new fromAction.NotifyUser({
+                        type: NotificationType.INFO,
+                        msg: `Tagged address '${taggedAddressData.addressToTag}' with tag '${taggedAddressData.tag.name}'`
+                    }));
+                    //ALTERATIVE: Could also have caught the events sent by the Ethereum network like method createListenerTagggingAddress() in old "Main.js"
+                }
             });
 
         this.taggedContractStore
@@ -400,7 +433,19 @@ export class AppComponent {
 
     onTagging() {
         if(this._currentTaggingData) {
-            console.log(`Going to call Contract Tagging Function: ${this._currentTaggingData.addressToTag}`);
+            console.log(`Tag name to use for tagging: ${this._currentTaggingData.tag.name}`);
+            console.log(`Address to tag: ${this._currentTaggingData.addressToTag}`);
+            //TODO: Recheck tagging cost according to user, and check if he is logged on to his wallet or not! If yes, we can lower the amount if user is indeed the creator of the tag!
+            console.log(`Cost for tagging: ${this._currentTaggingData.taggingCost}`);
+            let taggingData = { ...this._currentTaggingData }; //Clone current tagging data!
+            this.ethStore.dispatch(new fromAction.TaggingAddress(taggingData));
+
+            //Hide button for creation, as one creation is already in progress:
+            this._taggingAvailable = false;
+
+            //Reset current tagging data:
+            //this._currentTaggingData = { addressToTag: null, taggingCost: null, tag: null };
+
         }
     }
 

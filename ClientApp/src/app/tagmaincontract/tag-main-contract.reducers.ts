@@ -3,6 +3,8 @@ import {ActionReducerMap, createSelector, createFeatureSelector, Action} from '@
 import * as root from '../reducers';
 import {Tag} from "../tags/tags.model";
 import {UserNotif} from "./tag-main-contract.actions.internal";
+import {TagCreationData} from "../creation/tag-creation-data";
+import {TagTaggingData} from "../tagging/tag-tagging-data";
 
 
 // based on https://ngrx.io/guide/store/selectors
@@ -15,6 +17,8 @@ export interface State {
     actionsWaitingForEthInit: Action[];
     userNotifications: tagMainContractActions.UserNotif[];
     lastUserNotification: UserNotif;
+    createdTag: { data: TagCreationData, result: any};
+    taggedAddress: { data: TagTaggingData, result: any};
     uid: number;
 }
 
@@ -28,6 +32,8 @@ const initialState: State = {
     actionsWaitingForEthInit: [],
     userNotifications: [],
     lastUserNotification: null,
+    createdTag: null,
+    taggedAddress: null,
     uid: 0,
 };
 
@@ -53,6 +59,14 @@ export const reducer = (state = initialState, action: tagMainContractActions.Tag
 
         case (tagMainContractActions.ActionTypes.GET_ALL_TAGS_SUCCESS): {
             return {...state, tags: action.payload};
+        }
+
+        case (tagMainContractActions.ActionTypes.CREATE_TAG_SUCCESS): {
+            return {...state, createdTag: action.payload};
+        }
+
+        case (tagMainContractActions.ActionTypes.TAGGING_ADDRESS_SUCCESS): {
+            return {...state, taggedAddress: action.payload};
         }
 
         //TODO: Maybe this management of the storing of the action and waiting for the Eth Init, should be handled by a service?
@@ -109,4 +123,6 @@ export const getAllTags = createSelector(getTagMainContractState, (state: State)
 export const getActionsWaitingForEthInit = createSelector(getTagMainContractState, (state: State) => state.actionsWaitingForEthInit);
 export const getUserNotifications = createSelector(getTagMainContractState, (state: State) => state.userNotifications);
 export const getLastUserNotification = createSelector(getTagMainContractState, (state: State) => state.lastUserNotification);
+export const getCreatedTag = createSelector(getTagMainContractState, (state: State) => state.createdTag);
+export const getTaggedAddress = createSelector(getTagMainContractState, (state: State) => state.taggedAddress);
 
