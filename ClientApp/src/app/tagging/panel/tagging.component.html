@@ -12,8 +12,8 @@
         <mat-form-field class="example-full-width">
             <input matInput id="addressToTag" name="addressToTag" [(ngModel)]="data.addressToTag" placeholder="Address to tag" aria-label="Address to tag"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
         </mat-form-field>
-        <div *ngIf="data.addressToTag.length == 42" class="example-full-width bottom-margin">
-            <button class="example-full-width" mat-raised-button type="button" (click)="onTagging()" [innerHtml]="('Tag address \'' + (data.addressToTag | colorizeAddress) + '\'') | keepHtml"></button>
+        <div *ngIf="data.addressToTag.length == 42" class="example-full-width bottom-margin" >
+            <button class="example-full-width" mat-raised-button type="button" (mouseup)="onTagging()" [innerHtml]="('Tag address \'' + (data.addressToTag | colorizeAddress) + '\'') | keepHtml"></button>
         </div>
     </div>
 </form>

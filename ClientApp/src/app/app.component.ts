@@ -148,6 +148,10 @@ export class AppComponent {
                 this.fillInTagName(this.tags);
             });
 
+        /**
+         * Waiting for Responses from Contract Interaction
+         */
+
         this.taggedContractStore
             .pipe(
                 select(fromTagMainContract.getCreatedTag)

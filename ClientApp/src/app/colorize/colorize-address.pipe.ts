@@ -6,7 +6,7 @@ import {ContrastCheckerService} from "./contrast-checker.service";
 })
 export class ColorizeAddressPipe implements PipeTransform {
 
-    boldify = true;
+    boldify = false;
 
     constructor(private _contrastChecker: ContrastCheckerService) {
     }
