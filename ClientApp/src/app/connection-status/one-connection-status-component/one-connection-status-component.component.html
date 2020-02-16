@@ -1,0 +1,1 @@
+<div class="double-circle" [title]="baseStatusReportTxt + ': ' + ((connectionStatus | async) ? 'Connected' : 'Disconnected')" [ngClass]="{'not-connected': !(connectionStatus | async), 'connected': connectionStatus | async}"><span class="letter">{{letter}}</span></div>

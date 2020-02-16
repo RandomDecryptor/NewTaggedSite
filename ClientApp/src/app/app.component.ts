@@ -1,10 +1,10 @@
 /*
 	@2019 FC. All rights reserved.
 */
-import {Component} from '@angular/core';
+import {AfterContentInit, Component, Inject} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {Observable, of, ReplaySubject} from 'rxjs';
+import {from, Observable, of, ReplaySubject} from 'rxjs';
 import {debounceTime, first, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
@@ -20,7 +20,10 @@ import {ToastrService} from 'ngx-toastr';
 import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.services";
 import {TagTaggingData} from "./tagging/tag-tagging-data";
 import {NotificationType} from "./tagmaincontract";
-import {create} from "domain";
+
+import {Overlay, OverlayRef} from '@angular/cdk/overlay';
+import { ComponentPortal } from '@angular/cdk/portal';
+import {ConnectionStatusComponent} from "./connection-status/connection-status.component";
 
 @Component({
   selector: 'app-root',
@@ -38,7 +41,8 @@ export class AppComponent {
               private ethActions$: Actions<fromActionEth.EthActionsUnion>,
               //private _snackBar: MatSnackBar,
               private tagContractService: TagContractService,
-              private _toastrService: ToastrService) {
+              private _toastrService: ToastrService,
+              private overlayService: Overlay) {
       this.tagOptions = new ReplaySubject(1);
   }
 
@@ -67,6 +71,8 @@ export class AppComponent {
     private _userAddress = null;
 
     private _currentTaggingData: TagTaggingData = { addressToTag: null, taggingCost: null, tag: null };
+
+    private _overlayConnectionStatusRef: OverlayRef = null;
 
     get creationAvailable() {
         return this._creationAvailable;
@@ -219,6 +225,8 @@ export class AppComponent {
         //Try to get information from contract from Web3 provider it if exists:
         this.ethStore.dispatch(new fromEth.InitEthConsult());
 
+        this.ethStore.dispatch(new fromEth.CheckStatusEth());
+
         this.ethStore
             .pipe(
                 select(fromEth.getDefaultAccount)
@@ -227,6 +235,10 @@ export class AppComponent {
                 console.log('Active Account: ' + activeAccount);
                 this._userAddress = activeAccount;
             });
+
+        setTimeout(() => { //Wait for next rendering tick!
+            this._showConnectionStatus()
+        });
     }
 
   private _filter(value: string): Observable<Tag[]> {
@@ -451,6 +463,17 @@ export class AppComponent {
             //this._currentTaggingData = { addressToTag: null, taggingCost: null, tag: null };
 
         }
+    }
+
+    private _showConnectionStatus() {
+        if(this._overlayConnectionStatusRef && this._overlayConnectionStatusRef.hasAttached()) {
+            this._overlayConnectionStatusRef.detach();
+        }
+        this._overlayConnectionStatusRef = this.overlayService.create({
+            positionStrategy: this.overlayService.position().global().top().left(),
+            hasBackdrop: false
+        });
+        this._overlayConnectionStatusRef.attach(new ComponentPortal(ConnectionStatusComponent));
     }
 
 }

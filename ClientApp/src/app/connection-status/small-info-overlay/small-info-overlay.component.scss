@@ -1,0 +1,17 @@
+.small-info-msg {
+    border-width: 2px;
+    border-style: solid;
+    border-color: #626060;
+    border-radius: 15%;
+    padding: 10px;
+    background-color: #f4f4f4;
+    margin-top: 10px;
+}
+
+.small-info-msg.positive {
+    //border-color: #1DDF1D;
+}
+
+.small-info-msg.negative {
+    //border-color: #DF1D1D;
+}

@@ -1,0 +1,8 @@
+<div fxLayout="row" fxLayoutAlign="center center">
+    <div class="conn-status-comp" >
+        <app-one-connection-status-component #ethConnStatus letter="" baseStatusReportTxt="Ethereum Network Status" (click)="onClickStatusEthNetwork($event)" [connectionStatus]="connectionStatusEthNetwork"></app-one-connection-status-component>
+    </div>
+    <div class="conn-status-comp" *ngIf="connectionStatusEthNetwork | async">
+        <app-one-connection-status-component #userWalletStatus letter="" baseStatusReportTxt="User Wallet Status" (click)="onClickStatusUserWallet($event)" [connectionStatus]="connectionStatusUserWallet"></app-one-connection-status-component>
+    </div>
+</div>

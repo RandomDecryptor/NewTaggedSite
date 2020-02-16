@@ -3,7 +3,7 @@ import {Injectable, Inject} from '@angular/core';
 import {Actions, ofType, createEffect} from '@ngrx/effects';
 import {Action} from '@ngrx/store';
 import {Observable, of, from} from 'rxjs';
-import {exhaustMap, switchMap, map, tap, catchError} from 'rxjs/operators';
+import {exhaustMap, switchMap, map, tap, catchError, first, filter} from 'rxjs/operators';
 
 import {WEB3, SmartContract} from '../services/tokens';
 import Web3 from 'web3';
@@ -12,6 +12,7 @@ import {TruffleContract} from 'truffle-contract';
 
 import {EthService} from './eth.services';
 import * as fromAction from './eth.actions';
+import {EthError} from "./eth.actions";
 
 
 @Injectable()
@@ -55,8 +56,6 @@ export class EthEffects {
         //exhaustMap((action: fromAction.InitEth) => {
         switchMap((action: fromAction.InitEth) => {
 
-            var testDebbug = this.web3.currentProvider,
-                test2 = this.web3;
             if ('enable' in this.web3.currentProvider) {
 
                 /*
@@ -110,7 +109,7 @@ export class EthEffects {
         tap(value => console.log("Eth consultation init: " + value)),
         switchMap((action: fromAction.InitEthConsult) => {
 
-            if ('enable' in this.web3.currentProvider) { //web3.currentProvider === ethereum
+            if (this.web3 && this.web3.currentProvider && 'enable' in this.web3.currentProvider) { //web3.currentProvider === ethereum
 
                 //We set the provider already here, so we can access the smart contract GET methods (not possible the SET methods):
                 this.smartContract.setProvider(this.web3.currentProvider);
@@ -122,10 +121,58 @@ export class EthEffects {
             else {
                 //TODO: Needs to launch an alert (or add an action) to install MetaMask plugin or something similar (web3 support)
                 console.log("Eth Consult Init: Needs MetaMask plugin!");
+                return [new fromAction.EthError(new Error('ERROR: No WEB3 Provider detected!'))] as fromAction.EthActionsUnion[];
             }
         })
     ));
 
+    CheckStatusEther$ = createEffect(() => this.actions$.pipe(
+        ofType(fromAction.ActionTypes.CHECK_ETH),
+        switchMap((action: fromAction.CheckStatusEth) => {
+
+            if(this.web3 && this.web3.currentProvider && ('enable' in this.web3.currentProvider)) {
+                return from(this.web3.eth.getAccounts()).pipe(
+                    first(), //Take just one value!
+                    switchMap((accounts: any[]) => {
+                        let connStatus = false;
+                        if (accounts && accounts.length > 0) {
+                            connStatus = true;
+                        }
+                        const ret: fromAction.EthActionsUnion[] = [
+                            new fromAction.CheckStatusEthSuccess(connStatus)
+                        ];
+                        if(connStatus) {
+                            ret.push(new fromAction.GetAccountsSuccess(accounts))
+                        }
+                        return ret;
+                    })
+                );
+            }
+            else {
+                return [new fromAction.CheckStatusEthSuccess(false)];
+            }
+
+            /*
+            return from(this.web3.eth.on('accountsChanged'))
+                .pipe(
+                    map(value => {
+                        let connStatus = false;
+                        if(value) {
+                            connStatus = true;
+                        }
+                        return new fromAction.CheckStatusEthSuccess(connStatus);
+                    })
+                );
+             */
+            /*
+            if(this.web3 && this.web3.currentProvider && ('enable' in this.web3.currentProvider) ) {
+                this.web3.currentProvider.enable();
+                connStatus = true;
+            }
+            return new fromAction.CheckStatusEthSuccess(connStatus);
+             */
+        })
+    ));
 
     GetAccounts$: Observable<Action> = createEffect(() => this.actions$.pipe(
         ofType(fromAction.ActionTypes.GET_ACCOUNTS),

@@ -5,6 +5,7 @@ import * as root from '../reducers';
 // based on https://ngrx.io/guide/store/selectors
 export interface State {
     connectionStatus: boolean;
+    connectionConsultStatus: boolean;
     defaultAccount: string;
     balance: string;
     accounts: string[];
@@ -16,6 +17,7 @@ export interface State {
 
 const initialState: State = {
     connectionStatus: false,
+    connectionConsultStatus: false,
     defaultAccount: null,
     balance: null,
     accounts: [],
@@ -31,6 +33,12 @@ export const reducer = (state = initialState, action: ethActions.EthActionsUnion
 
         case (ethActions.ActionTypes.INIT_ETH_SUCCESS): {
             return {...state, connectionStatus: true};
+        }
+        case (ethActions.ActionTypes.INIT_ETH_CONSULT_SUCCESS): {
+            return {...state, connectionConsultStatus: true};
+        }
+        case (ethActions.ActionTypes.CHECK_ETH_SUCCESS): {
+            return {...state, connectionStatus: action.payload};
         }
         case (ethActions.ActionTypes.GET_ACCOUNTS_SUCCESS): {
             return {...state, accounts:action.payload };
@@ -72,6 +80,7 @@ export const selectEthState = createFeatureSelector<AppState, EthState>('ethStat
 export const getEthState = createSelector(selectEthState, (state: EthState) => state.eth);
 
 export const getConStatus = createSelector(getEthState, (state: State) => state.connectionStatus);
+export const getConConsultStatus = createSelector(getEthState, (state: State) => state.connectionConsultStatus);
 export const getAllAccounts = createSelector(getEthState, (state: State) => state.accounts);
 export const getDefaultAccount = createSelector(getEthState, (state: State) => state.defaultAccount);
 export const getAccountBalance = createSelector(getEthState, (state: State) => state.balance);

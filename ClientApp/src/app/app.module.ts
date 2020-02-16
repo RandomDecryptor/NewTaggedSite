@@ -47,6 +47,14 @@ import {TaggingComponent} from "./tagging/panel/tagging.component";
 import {EscapeHtmlPipe} from "./pipes/keep-html.pipe";
 import {ContrastCheckerService} from "./colorize/contrast-checker.service";
 
+import {OverlayModule} from '@angular/cdk/overlay';
+import { ConnectionStatusComponent } from './connection-status/connection-status.component';
+import { OneConnectionStatusComponentComponent } from './connection-status/one-connection-status-component/one-connection-status-component.component';
+import { SmallInfoOverlayComponent } from './connection-status/small-info-overlay/small-info-overlay.component';
+import { ConnectWalletComponent } from './connection-status/connect-wallet/connect-wallet.component';
+import { ConnectEthereumNetworkComponent } from './connection-status/connect-ethereum-network/connect-ethereum-network.component';
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -57,9 +65,19 @@ import {ContrastCheckerService} from "./colorize/contrast-checker.service";
     TagCreationDialogComponent,
     WeiToEtherPipe,
     TaggingComponent,
+    ConnectionStatusComponent,
+    OneConnectionStatusComponentComponent,
+    SmallInfoOverlayComponent,
+    ConnectWalletComponent,
+    ConnectEthereumNetworkComponent,
   ],
     entryComponents: [
-        TagCreationDialogComponent //Dialog component will be instantiated dynamically by the Dialog service!
+        TagCreationDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!
+        ConnectionStatusComponent, //Overlay component will be instantiated dynamically by the Overlay service!
+        OneConnectionStatusComponentComponent, //Overlay component will be instantiated dynamically by the Overlay service!
+        SmallInfoOverlayComponent, //Overlay component will be instantiated dynamically by the Overlay service!
+        ConnectWalletComponent, //Overlay component will be instantiated dynamically by the Overlay service!
+        ConnectEthereumNetworkComponent, //Overlay component will be instantiated dynamically by the Overlay service!
     ],
     imports: [
         BrowserModule,
@@ -75,6 +93,7 @@ import {ContrastCheckerService} from "./colorize/contrast-checker.service";
         MatButtonModule,
         FlexLayoutModule,
         //MatSnackBarModule,
+        OverlayModule,
         ToastrModule.forRoot(), // ToastrModule added
 
         StoreModule.forRoot(reducers, {metaReducers}),

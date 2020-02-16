@@ -6,6 +6,8 @@ export enum ActionTypes {
   INIT_ETH_SUCCESS = '[Eth] Init Ethereum Success',
   INIT_ETH_CONSULT = '[Eth] Init Ethereum Consultation',
   INIT_ETH_CONSULT_SUCCESS = '[Eth] Init Ethereum Consultation Success',
+  CHECK_ETH = '[Eth] Check Ethereum Connection Status',
+  CHECK_ETH_SUCCESS = '[Eth] Check Ethereum Connection Status Success',
   GET_ACCOUNTS = '[Eth] Get All Accounts',
   GET_ACCOUNTS_SUCCESS = '[Eth] Get All Accounts Success',
   SET_DEFAULT_ACCOUNT = '[Eth] Set Default Account',
@@ -38,6 +40,14 @@ export class InitEthConsultSuccess implements Action {
     readonly type = ActionTypes.INIT_ETH_CONSULT_SUCCESS;
 }
 
+export class CheckStatusEth implements Action {
+    readonly type = ActionTypes.CHECK_ETH;
+}
+
+export class CheckStatusEthSuccess implements Action {
+    readonly type = ActionTypes.CHECK_ETH_SUCCESS;
+    constructor(public payload: boolean) {}
+}
 
 export class GetAccounts implements Action {
     readonly type = ActionTypes.GET_ACCOUNTS;
@@ -78,6 +88,8 @@ export type EthActionsUnion =
     | InitEthSuccess
     | InitEthConsult
     | InitEthConsultSuccess
+    | CheckStatusEth
+    | CheckStatusEthSuccess
     | GetAccounts
     | GetAccountsSuccess
     | SetDefaultAccount
