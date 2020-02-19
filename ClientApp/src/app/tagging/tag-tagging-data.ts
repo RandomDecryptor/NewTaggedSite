@@ -4,5 +4,6 @@ export interface TagTaggingData {
     tag: Tag;
     taggingCost: string;
     addressToTag: string;
+    estimated?: boolean;
 }
 

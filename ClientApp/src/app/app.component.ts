@@ -5,7 +5,7 @@ import {AfterContentInit, Component, Inject} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
 import {from, Observable, of, ReplaySubject} from 'rxjs';
-import {debounceTime, first, map, startWith, switchMap, tap} from 'rxjs/operators';
+import {debounceTime, filter, first, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
 import * as fromTagMainContract from './tagmaincontract';
@@ -70,7 +70,7 @@ export class AppComponent {
 
     private _userAddress = null;
 
-    private _currentTaggingData: TagTaggingData = { addressToTag: null, taggingCost: null, tag: null };
+    private _currentTaggingData: TagTaggingData = { addressToTag: null, taggingCost: null, tag: null, estimated: false };
 
     private _overlayConnectionStatusRef: OverlayRef = null;
 
@@ -426,23 +426,37 @@ export class AppComponent {
         });
     }
 
+    isEqualAddress(address1: string, address2: string): boolean {
+        return address1 == address2 || (address1 != null && address2 != null && address1.toLowerCase() === address2.toLowerCase());
+    }
+
     prepareTagging() {
+        let estimation = false;
         if(this._currentTag) {
             let cost = this.taggingCost$;
-            if(this._currentTag.creatorAddress === this._userAddress) {
-                cost = this.taggingByCreatorCost$;
+            if(this._userAddress == null) {
+                estimation = true;
             }
-            this.processValue(cost, (value) => this.gotoTagging(value)); //Had to create Fat Arrow here to create an extra function, just to keep the correct "this"!
-
+            else if(this.isEqualAddress(this._currentTag.creatorAddress, this._userAddress)) {
+                if(this._currentTag.ownerBalance > 0) {
+                    //The owner still has balance, so it won't cost anything:
+                    cost = of("0");
+                }
+                else {
+                    cost = this.taggingByCreatorCost$;
+                }
+            }
+            this.processValue(cost, (value) => this.gotoTagging(value, estimation)); //Had to create Fat Arrow here to create an extra function, just to keep the correct "this"!
         }
     }
 
-    gotoTagging(value: any) {
+    gotoTagging(value: any, estimation: boolean) {
         if(this._currentTag) {
             console.log(`Preparing tagging of Tag "${this._currentTag.name}" for "${value}" Wei`);
             this._currentTaggingData.tag = this._currentTag;
             this._currentTaggingData.taggingCost = value;
             this._currentTaggingData.addressToTag = ''; //Clean address to tag field
+            this._currentTaggingData.estimated = estimation;
             this._taggingAvailable = true;
         }
     }
@@ -476,4 +490,19 @@ export class AppComponent {
         this._overlayConnectionStatusRef.attach(new ComponentPortal(ConnectionStatusComponent));
     }
 
+    onTaggingConnectWallet() {
+        this.ethStore
+            .pipe(
+                select(fromEth.getDefaultAccount),
+                filter(value => !!value), //Filter by only return with value
+                first()
+            )
+            .subscribe(activeAccount => {
+                //We have gotten information about the active account:
+                console.log("onTaggingConnectWallet: " + activeAccount);
+                //Reload information from current Tag:
+                this.prepareTagging()
+            });
+        this.ethStore.dispatch(new fromEth.InitEth());
+    }
 }

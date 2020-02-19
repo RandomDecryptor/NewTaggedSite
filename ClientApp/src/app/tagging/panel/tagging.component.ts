@@ -1,6 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {TagTaggingData} from "../tag-tagging-data";
-import {ContrastCheckerService} from "../../colorize/contrast-checker.service";
 
 @Component({
     selector: 'app-tagging-panel',
@@ -8,14 +7,21 @@ import {ContrastCheckerService} from "../../colorize/contrast-checker.service";
     styleUrls: ['./tagging.component.scss']
 })
 export class TaggingComponent {
-
     @Input() data: TagTaggingData;
 
     @Output() toTag: EventEmitter<TagTaggingData> = new EventEmitter();
 
-    constructor() { }
+    @Output() toConnectWallet: EventEmitter<void> = new EventEmitter();
+
+    constructor() {
+    }
 
     onTagging(): void {
         this.toTag.next(this.data);
     }
+
+    connectWallet() {
+        this.toConnectWallet.emit();
+    }
+
 }

@@ -41,7 +41,7 @@ export const reducer = (state = initialState, action: ethActions.EthActionsUnion
             return {...state, connectionStatus: action.payload};
         }
         case (ethActions.ActionTypes.GET_ACCOUNTS_SUCCESS): {
-            return {...state, accounts:action.payload };
+            return {...state, accounts:action.payload, defaultAccount: (action.payload && action.payload.length) ? action.payload[0] : null };
         }
         case (ethActions.ActionTypes.SET_DEFAULT_ACCOUNT_SUCCESS): {
             return {...state, defaultAccount: action.payload };

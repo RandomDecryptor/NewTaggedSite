@@ -29,7 +29,7 @@
 
 </mat-grid-list>
 
-<app-tagging-panel [data]="currentTaggingData" (toTag)="onTagging()" *ngIf="taggingAvailable"></app-tagging-panel>
+<app-tagging-panel [data]="currentTaggingData" (toTag)="onTagging()" (toConnectWallet)="onTaggingConnectWallet()" *ngIf="taggingAvailable"></app-tagging-panel>
 
 <button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
 <button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>
