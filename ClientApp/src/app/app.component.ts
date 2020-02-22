@@ -19,11 +19,11 @@ import {Actions} from "@ngrx/effects";
 import {ToastrService} from 'ngx-toastr';
 import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.services";
 import {TagTaggingData} from "./tagging/tag-tagging-data";
-import {NotificationType} from "./tagmaincontract";
 
 import {Overlay, OverlayRef} from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {ConnectionStatusComponent} from "./connection-status/connection-status.component";
+import {MainContractListenerManagementService} from "./services/main-contract-listener-management.service";
 
 @Component({
   selector: 'app-root',
@@ -41,6 +41,7 @@ export class AppComponent {
               private ethActions$: Actions<fromActionEth.EthActionsUnion>,
               //private _snackBar: MatSnackBar,
               private tagContractService: TagContractService,
+              private mainContractEventManagementService: MainContractListenerManagementService,
               private _toastrService: ToastrService,
               private overlayService: Overlay) {
       this.tagOptions = new ReplaySubject(1);
@@ -167,7 +168,7 @@ export class AppComponent {
                     const {creationAddressData, result } = { creationAddressData: createdTagPayload.data, result: createdTagPayload.result};
                     console.log(`Created Tag '${creationAddressData.tagName}' in transaction '${result.tx}'` );
                     this.taggedContractStore.dispatch(new fromAction.NotifyUser({
-                        type: NotificationType.INFO,
+                        type: fromTagMainContract.NotificationType.INFO,
                         msg: `Created Tag: ${creationAddressData.tagName}`
                     }));
                 }
@@ -182,7 +183,7 @@ export class AppComponent {
                     const {taggedAddressData, result } = { taggedAddressData: taggedAddressPayload.data, result: taggedAddressPayload.result};
                     console.log(`Tagged Address '${taggedAddressData.addressToTag}' in transaction '${result.tx}'`);
                     this.taggedContractStore.dispatch(new fromAction.NotifyUser({
-                        type: NotificationType.INFO,
+                        type: fromTagMainContract.NotificationType.INFO,
                         msg: `Tagged address '${taggedAddressData.addressToTag}' with tag '${taggedAddressData.tag.name}'`
                     }));
                     //ALTERATIVE: Could also have caught the events sent by the Ethereum network like method createListenerTagggingAddress() in old "Main.js"
@@ -222,6 +223,19 @@ export class AppComponent {
                 }
             });
 
+        //TODO: TODELETE: Delete from here, just for testing for now!
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getTaggingEvent)
+            )
+            .subscribe(taggingEvent => {
+                //Have we any value or is it still the not initialized:
+                if(taggingEvent) {
+                    console.log(`Tagging EVENT detected from contact: ${taggingEvent.tagId} / ${taggingEvent.ownerBalance} / ${taggingEvent.totalTaggings}`);
+                }
+            });
+
+
         //Try to get information from contract from Web3 provider it if exists:
         this.ethStore.dispatch(new fromEth.InitEthConsult());
 
@@ -239,6 +253,14 @@ export class AppComponent {
         setTimeout(() => { //Wait for next rendering tick!
             this._showConnectionStatus()
         });
+    }
+
+    //TODELETE:
+    testCallToServiceListener() {
+        //TODO:
+        //... Will not put here but instead in the effects of main contract! We will just send an event here with the tags! And then together with the userAddress in the store of tag Main contract we do the following call:
+        //TODELETE: Remove direct call to mainContractService and use Action sent to store!:
+        this.mainContractEventManagementService.trackEventsBaseUserAddress(this._userAddress, this.tags);
     }
 
   private _filter(value: string): Observable<Tag[]> {

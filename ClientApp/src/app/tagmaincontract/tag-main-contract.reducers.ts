@@ -4,7 +4,7 @@ import * as root from '../reducers';
 import {Tag} from "../tags/tags.model";
 import {UserNotif} from "./tag-main-contract.actions.internal";
 import {TagCreationData} from "../creation/tag-creation-data";
-import {TagTaggingData} from "../tagging/tag-tagging-data";
+import {TaggingEventData, TagTaggingData} from "../tagging/tag-tagging-data";
 
 
 // based on https://ngrx.io/guide/store/selectors
@@ -20,6 +20,7 @@ export interface State {
     createdTag: { data: TagCreationData, result: any};
     taggedAddress: { data: TagTaggingData, result: any};
     uid: number;
+    taggingEvent: TaggingEventData;
 }
 
 
@@ -35,6 +36,7 @@ const initialState: State = {
     createdTag: null,
     taggedAddress: null,
     uid: 0,
+    taggingEvent: null
 };
 
 
@@ -67,6 +69,10 @@ export const reducer = (state = initialState, action: tagMainContractActions.Tag
 
         case (tagMainContractActions.ActionTypes.TAGGING_ADDRESS_SUCCESS): {
             return {...state, taggedAddress: action.payload};
+        }
+
+        case (tagMainContractActions.ActionTypes.TAGGING_ADDRESS_EVENT): {
+            return {...state, taggingEvent: action.payload};
         }
 
         //TODO: Maybe this management of the storing of the action and waiting for the Eth Init, should be handled by a service?
@@ -125,4 +131,5 @@ export const getUserNotifications = createSelector(getTagMainContractState, (sta
 export const getLastUserNotification = createSelector(getTagMainContractState, (state: State) => state.lastUserNotification);
 export const getCreatedTag = createSelector(getTagMainContractState, (state: State) => state.createdTag);
 export const getTaggedAddress = createSelector(getTagMainContractState, (state: State) => state.taggedAddress);
+export const getTaggingEvent = createSelector(getTagMainContractState, (state: State) => state.taggingEvent);
 

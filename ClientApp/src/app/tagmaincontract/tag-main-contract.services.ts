@@ -140,26 +140,6 @@ export class TagMainContractService {
 
     }
 
-    //TODO: TO DELETE THIS METHOD!:
-    private convertToTagsJs(tags, baseIndex) {
-        if(!baseIndex)
-            baseIndex = 0; //Value by default, in case no baseIndex parameter is passed!
-        var res = new Array(tags[0].length);
-        for(var i = 0; i < tags[0].length; i++) {
-            res[i] = {
-                contractAddress: tags[0][i],
-                creatorAddress: tags[1][i],
-                ownerBalance: tags[2][i],
-                totalTaggings: tags[3][i],
-                tagIndex: baseIndex + i, //For example first tag ("TAG1"), will have index 0 (this index will be the position in the global tags index, not the index on the ethereum contract)
-                tagId: baseIndex + i + 1 //TagId: Tag Index used on the ethereum contract side
-            };
-
-        }
-        return res;
-    };
-
-
 
     public setAttack(name: string): Observable<any> {
 

@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import {Tag} from "../tags/tags.model";
 import {TagCreationData} from "../creation/tag-creation-data";
-import {TagTaggingData} from "../tagging/tag-tagging-data";
+import {TaggingEventData, TagTaggingData} from "../tagging/tag-tagging-data";
 
 export enum ActionTypes {
   GET_TAGGING_COST = '[Tag Main Contract] Get Tagging Cost',
@@ -22,6 +22,7 @@ export enum ActionTypes {
   TAGGING_ADDRESS_INTERNAL_SUCCESS = '[Tag Main Contract] Tagging Address Internal Success',
   TAGGING_ADDRESS = '[Tag Main Contract] Tagging Address',
   TAGGING_ADDRESS_SUCCESS = '[Tag Main Contract] Tagging Address Success',
+  TAGGING_ADDRESS_EVENT = '[Tag Main Contract] Tagging Address Event',
   STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] Store Action Until Connection to User Ethereum Wallet Allowed',
   CLEAR_STORE_ACTION_UNTIL_ETH_INITIALIZED = '[Tag Main Contract] CLEAR Store Action Until Connection to User Ethereum Wallet Allowed',
   NOTIFY_USER = '[Tag Main Contract] Notify User Action',
@@ -164,6 +165,11 @@ export class EthError implements Action {
     constructor(public payload: any) {}
 }
 
+export class EventTaggingAddress implements Action {
+    readonly type = ActionTypes.TAGGING_ADDRESS_EVENT;
+    constructor(public payload: TaggingEventData) {}
+}
+
 export type TagMainContractUnion =
     | GetTaggingCost
     | GetTaggingCostSuccess
@@ -183,6 +189,7 @@ export type TagMainContractUnion =
     | TaggingAddressIntSuccess
     | TaggingAddress
     | TaggingAddressSuccess
+    | EventTaggingAddress
     | StoreActionUntilEthInited
     | ClearStoredActionsWaitingForEthInit
     | NotifyUser
