@@ -4,8 +4,8 @@
 import {AfterContentInit, Component, Inject} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {from, Observable, of, ReplaySubject} from 'rxjs';
-import {debounceTime, filter, first, map, startWith, switchMap, tap} from 'rxjs/operators';
+import {from, Observable, of, ReplaySubject, Subject} from 'rxjs';
+import {debounceTime, filter, first, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
 import * as fromTagMainContract from './tagmaincontract';
@@ -24,6 +24,8 @@ import {Overlay, OverlayRef} from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {ConnectionStatusComponent} from "./connection-status/connection-status.component";
 import {MainContractListenerManagementService} from "./services/main-contract-listener-management.service";
+import {AllTagsService} from "./tags/state/all-tags.service";
+import {AllTagsQuery} from "./tags/state/all-tags.query";
 
 @Component({
   selector: 'app-root',
@@ -34,6 +36,7 @@ export class AppComponent {
   myControl = new FormControl();
   tagOptions: ReplaySubject<Tag[]>;
   filteredOptions: Observable<Tag[]>;
+    private _terminateNameRetrieval: Subject<void>;
 
   constructor(private ethStore: Store<fromEth.AppState>,
               private taggedContractStore: Store<fromTagMainContract.AppState>,
@@ -42,9 +45,12 @@ export class AppComponent {
               //private _snackBar: MatSnackBar,
               private tagContractService: TagContractService,
               private mainContractEventManagementService: MainContractListenerManagementService,
+              private allTagsService: AllTagsService,
+              private allTagsQuery: AllTagsQuery,
               private _toastrService: ToastrService,
               private overlayService: Overlay) {
       this.tagOptions = new ReplaySubject(1);
+      this._terminateNameRetrieval = new Subject();
   }
 
     static readonly debounceTimeCreationTagButton = 1000;
@@ -58,6 +64,8 @@ export class AppComponent {
     private tagTransferCost$: Observable<string>;
 
     private tags: Tag[]; //Not Observable here, because we want the tags available at the moment, and not await for them or subscribe to them!
+
+    private tags$: Observable<Tag[]>;
 
     private userNotifications$: Observable<fromTagMainContract.UserNotif[]>;
 
@@ -151,8 +159,8 @@ export class AppComponent {
                     return {    contractAddress: tag.contractAddress, creatorAddress: tag.creatorAddress, ownerBalance: tag.ownerBalance,
                                 totalTaggings: tag.totalTaggings, tagIndex: tag.tagIndex, tagId: tag.tagId, name: null, symbol: null };
                 });
-                this.tags = clonedTags;
-                this.fillInTagName(this.tags);
+                this.allTagsService.set(clonedTags);
+                this.fillInTagName(clonedTags);
             });
 
         /**
@@ -223,19 +231,6 @@ export class AppComponent {
                 }
             });
 
-        //TODO: TODELETE: Delete from here, just for testing for now!
-        this.taggedContractStore
-            .pipe(
-                select(fromTagMainContract.getTaggingEvent)
-            )
-            .subscribe(taggingEvent => {
-                //Have we any value or is it still the not initialized:
-                if(taggingEvent) {
-                    console.log(`Tagging EVENT detected from contact: ${taggingEvent.tagId} / ${taggingEvent.ownerBalance} / ${taggingEvent.totalTaggings}`);
-                }
-            });
-
-
         //Try to get information from contract from Web3 provider it if exists:
         this.ethStore.dispatch(new fromEth.InitEthConsult());
 
@@ -250,6 +245,27 @@ export class AppComponent {
                 this._userAddress = activeAccount;
             });
 
+        //Any change to all tags store:
+        this.allTagsQuery.selectAll().subscribe(allTags => {
+            console.debug('AllTags changed: ' + (allTags ? allTags.length : 0));
+            this.tags = allTags;
+        });
+
+        //Keep observable
+        this.tags$ = this.allTagsQuery.selectAll();
+
+        //Update values related to name retrieval of Tags:
+        this.allTagsQuery.selectAll().pipe(
+            takeUntil(
+                this._terminateNameRetrieval
+            ),
+            debounceTime(1000) //Wait one second of no activity to update options in Tag combo field
+        ).subscribe(allTags => {
+            console.debug('AllTags changed for Name Retrieval: ' + (allTags ? allTags.length : 0));
+            //We gotten an updated tag name, update also the tagOptions, so observers can render new tag name value:
+            this.tagOptions.next(allTags);
+        });
+
         setTimeout(() => { //Wait for next rendering tick!
             this._showConnectionStatus()
         });
@@ -260,7 +276,7 @@ export class AppComponent {
         //TODO:
         //... Will not put here but instead in the effects of main contract! We will just send an event here with the tags! And then together with the userAddress in the store of tag Main contract we do the following call:
         //TODELETE: Remove direct call to mainContractService and use Action sent to store!:
-        this.mainContractEventManagementService.trackEventsBaseUserAddress(this._userAddress, this.tags);
+        this.mainContractEventManagementService.trackEventsOnTags(this.tags);
     }
 
   private _filter(value: string): Observable<Tag[]> {
@@ -436,20 +452,19 @@ export class AppComponent {
   }
 
     private fillInTagName(tags: Tag[]) {
+        let counter = tags.length;
         const tagsMissingName = tags.filter(value => !value.name);
         tagsMissingName.forEach(tag => {
             //Get name for each tag:
             this.tagContractService.getName(tag.contractAddress).subscribe(name => {
                 console.log('Gotten tag name: ' + name);
-                tag.name = name;
-                //We gotten an updated tag name, update also the tagOptions, so observers can render new tag name value:
-                this.tagOptions.next(this.tags);
+                this.allTagsService.update(tag.tagId, {name: name});
+                if(counter-- <= 0) {
+                    console.debug('Gotten all tag names: Name retrieval terminated.');
+                    this._terminateNameRetrieval.complete();
+                }
             });
         });
-    }
-
-    isEqualAddress(address1: string, address2: string): boolean {
-        return address1 == address2 || (address1 != null && address2 != null && address1.toLowerCase() === address2.toLowerCase());
     }
 
     prepareTagging() {
@@ -459,7 +474,7 @@ export class AppComponent {
             if(this._userAddress == null) {
                 estimation = true;
             }
-            else if(this.isEqualAddress(this._currentTag.creatorAddress, this._userAddress)) {
+            else if(fromEth.EthUtils.isEqualAddress(this._currentTag.creatorAddress, this._userAddress)) {
                 if(this._currentTag.ownerBalance > 0) {
                     //The owner still has balance, so it won't cost anything:
                     cost = of("0");
@@ -490,6 +505,9 @@ export class AppComponent {
             //TODO: Recheck tagging cost according to user, and check if he is logged on to his wallet or not! If yes, we can lower the amount if user is indeed the creator of the tag!
             console.log(`Cost for tagging: ${this._currentTaggingData.taggingCost}`);
             let taggingData = { ...this._currentTaggingData }; //Clone current tagging data!
+            //Reclone Tag, so it doesn't become read-only!:
+            let clonedTag = { ...this._currentTaggingData.tag };
+            taggingData.tag = clonedTag;
             this.ethStore.dispatch(new fromAction.TaggingAddress(taggingData));
 
             //Hide button for creation, as one creation is already in progress:

@@ -10,7 +10,7 @@ export interface TagTaggingData {
 }
 
 export interface TaggingEventData {
-    tagId: string;
+    tagId: number;
     ownerBalance: Web3.BigNumber;
     totalTaggings: Web3.BigNumber;
 }

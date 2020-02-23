@@ -4,8 +4,9 @@ import * as fromTagMainContract from '../tagmaincontract';
 import {select, Store} from "@ngrx/store";
 import {first} from "rxjs/operators";
 
-import Web3 from 'web3';
 import * as fromEth from "../ethereum";
+import {MainContractAllTagsHelper} from "./helpers/main-contract-all-tags.helper";
+import {AllTagsStore} from "../tags/state/all-tags.store";
 
 interface EventListener {
     listener: any;
@@ -22,26 +23,15 @@ export class MainContractListenerManagementService {
 
     private _smartContractResolved: any = null;
 
-    private _tracking = false;
+    private _trackingUserAddress: string = null;
+
+    private allTagsManagerHelper: MainContractAllTagsHelper = null;
 
     constructor(private ethStore: Store<fromEth.AppState>,
                 private taggedContractStore: Store<fromTagMainContract.AppState>,
-                private mainContractService: fromTagMainContract.TagMainContractService) {
+                private mainContractService: fromTagMainContract.TagMainContractService,
+                private allTagsStore: AllTagsStore) {
         this._eventListeners = [];
-
-        const me = this;
-        this.ethStore
-            .pipe(
-                select(fromEth.getDefaultAccount)
-            )
-            .subscribe(activeAccount => {
-                if(activeAccount && me._tracking) {
-                    console.log(`Active Account changed to '${activeAccount}' while tracking.`);
-                    this.clearEventListener();
-                }
-            });
-
-
     }
 
     private async _initializeSmartContract(fn) {
@@ -56,15 +46,12 @@ export class MainContractListenerManagementService {
      * Contract Event LISTENERS MANAGEMENT
      *
      */
-    public trackEventsBaseUserAddress(userAddress: string, allTags: Tag[], resetListeners: boolean = true) {
+    public trackEventsOnTags(allTags: Tag[], resetListeners: boolean = true) {
         //Initialize smart contract variable and execute task to do:
-        this._initializeSmartContract(() => this._trackEventsBaseUserAddress(userAddress, allTags, resetListeners));
+        this._initializeSmartContract(() => this._trackEventsOnTags(allTags, resetListeners));
     }
 
     private _trackEventsBaseUserAddress(userAddress: string, allTags: Tag[], resetListeners: boolean) {
-        //TODO:
-        //... See main.js from old project!
-
         const tagsFromUser = allTags.filter((elem, index) => {
             return elem.creatorAddress == userAddress;
         });
@@ -84,7 +71,32 @@ export class MainContractListenerManagementService {
 
         this._eventListeners.push(eventTaggedAddress);
 
-        this._tracking = true;
+    }
+
+    private _trackEventsOnTags(allTags: Tag[], resetListeners: boolean) {
+        //TODO:
+        //... See main.js from old project!
+        var me = this;
+        if(!this._trackingUserAddress) {
+            this.allTagsManagerHelper = new MainContractAllTagsHelper(allTags);
+
+            this.ethStore
+                .pipe(
+                    select(fromEth.getDefaultAccount)
+                )
+                .subscribe(activeAccount => {
+                    if (activeAccount && !fromEth.EthUtils.isEqualAddress(me._trackingUserAddress, activeAccount)) {
+                        console.log(`Active Account changed to '${activeAccount}' while tracking.`);
+                        me.clearEventListener();
+                        me._trackingUserAddress = activeAccount;
+
+                        me._trackEventsBaseUserAddress(activeAccount, allTags, resetListeners);
+                    }
+                });
+        }
+        else {
+            console.log('Already Tracking Events (specially those related to user address)');
+        }
     }
 
     private clearEventListener() {
@@ -170,12 +182,17 @@ export class MainContractListenerManagementService {
          */
     }
 
-    private _refreshTaggings(tagId: string) {
+    private _refreshTaggings(tagIdStr: string) {
+        const tagId = Number(tagIdStr); //Convert string to number
         this._smartContractResolved.tagsCreated(tagId)
             .then(result => {
                 console.log("Will refresh tag: " + tagId);
                 console.log("ownerBalance: " + result.ownerBalance.toString()); //BigNumber
                 console.log("totalTaggings: " + result.totalTaggings.toString()); ///BigNumber
+                //this.allTagsManagerHelper.updateByTagging(tagId, result.ownerBalance, result.totalTaggings);
+                //Update in the store the ownerBalance and totalTaggings of the tag:
+                this.allTagsStore.update(tagId, { ownerBalance: result.ownerBalance, totalTaggings: result.totalTaggings });
+                //Fire EventTaggingAddress: Visually on the grid signal the updating of the values:
                 this.taggedContractStore.dispatch( new fromTagMainContract.EventTaggingAddress({tagId: tagId, ownerBalance: result.ownerBalance, totalTaggings: result.totalTaggings} ));
             });
     }

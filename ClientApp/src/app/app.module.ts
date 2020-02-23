@@ -13,10 +13,13 @@ import {
     MatDialogModule, MatListModule
 } from "@angular/material";
 
+import {MatTableModule} from '@angular/material/table';
+
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 // routing
 import { AppRoutingModule } from './app-routing.module';
+
 
 // Store
 // NgRx
@@ -53,8 +56,15 @@ import { OneConnectionStatusComponentComponent } from './connection-status/one-c
 import { SmallInfoOverlayComponent } from './connection-status/small-info-overlay/small-info-overlay.component';
 import { ConnectWalletComponent } from './connection-status/connect-wallet/connect-wallet.component';
 import { ConnectEthereumNetworkComponent } from './connection-status/connect-ethereum-network/connect-ethereum-network.component';
+import { YourTagsComponent } from './consultation/your-tags/your-tags.component';
 
+import { enableAkitaProdMode } from '@datorama/akita';
+import {AkitaNgDevtools} from '@datorama/akita-ngdevtools';
 
+if (environment.production) {
+    enableAkitaProdMode();
+}
+​
 @NgModule({
   declarations: [
     AppComponent,
@@ -70,6 +80,7 @@ import { ConnectEthereumNetworkComponent } from './connection-status/connect-eth
     SmallInfoOverlayComponent,
     ConnectWalletComponent,
     ConnectEthereumNetworkComponent,
+    YourTagsComponent,
   ],
     entryComponents: [
         TagCreationDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!
@@ -91,6 +102,7 @@ import { ConnectEthereumNetworkComponent } from './connection-status/connect-eth
         MatDividerModule,
         MatGridListModule,
         MatButtonModule,
+        MatTableModule,
         FlexLayoutModule,
         //MatSnackBarModule,
         OverlayModule,
@@ -109,7 +121,8 @@ import { ConnectEthereumNetworkComponent } from './connection-status/connect-eth
         EthModule, //TODO: Maybe try to remove this from here!! Use the Router like the other example!
         TagMainContractModule, //TODO: Maybe try to remove this from here!! Use the Router like the other example!
         MatDialogModule,
-        MatListModule
+        MatListModule,
+        environment.production ? [] : AkitaNgDevtools.forRoot()
 
     ],
   providers: [

@@ -38,7 +38,7 @@
           "options": {
             "customWebpackConfig": {
               "path": "./extra-webpack.config.js"
-            } ,
+            },
             "outputPath": "dist/taggd-ng",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -160,5 +160,8 @@
       }
     }
   },
-  "defaultProject": "taggd-ng"
+  "defaultProject": "taggd-ng",
+  "cli": {
+    "defaultCollection": "@datorama/akita"
+  }
 }
