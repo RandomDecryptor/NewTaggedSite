@@ -5,7 +5,6 @@ import {select, Store} from "@ngrx/store";
 import {first} from "rxjs/operators";
 
 import * as fromEth from "../ethereum";
-import {MainContractAllTagsHelper} from "./helpers/main-contract-all-tags.helper";
 import {AllTagsStore} from "../tags/state/all-tags.store";
 
 interface EventListener {
@@ -25,7 +24,7 @@ export class MainContractListenerManagementService {
 
     private _trackingUserAddress: string = null;
 
-    private allTagsManagerHelper: MainContractAllTagsHelper = null;
+    private _trackingAllTags: Tag[] = null;
 
     constructor(private ethStore: Store<fromEth.AppState>,
                 private taggedContractStore: Store<fromTagMainContract.AppState>,
@@ -53,7 +52,7 @@ export class MainContractListenerManagementService {
 
     private _trackEventsBaseUserAddress(userAddress: string, allTags: Tag[], resetListeners: boolean) {
         const tagsFromUser = allTags.filter((elem, index) => {
-            return elem.creatorAddress == userAddress;
+            return fromEth.EthUtils.isEqualAddress(elem.creatorAddress, userAddress);
         });
 
         if(resetListeners) {
@@ -67,9 +66,12 @@ export class MainContractListenerManagementService {
         /*
             Catch Taggings of user owned tags
          */
+        //FIXME: JUST TESTING REMOVING TaggedAddress event from here and leave it in another place! Maybe we can only have one listener for the TaggingAddress event!!
+        /*
         const eventTaggedAddress = this._createListenerTagggingAddress(tagIds);
 
         this._eventListeners.push(eventTaggedAddress);
+         */
 
     }
 
@@ -77,29 +79,42 @@ export class MainContractListenerManagementService {
         //TODO:
         //... See main.js from old project!
         var me = this;
-        if(!this._trackingUserAddress) {
-            this.allTagsManagerHelper = new MainContractAllTagsHelper(allTags);
 
-            this.ethStore
-                .pipe(
-                    select(fromEth.getDefaultAccount)
-                )
-                .subscribe(activeAccount => {
-                    if (activeAccount && !fromEth.EthUtils.isEqualAddress(me._trackingUserAddress, activeAccount)) {
-                        console.log(`Active Account changed to '${activeAccount}' while tracking.`);
-                        me.clearEventListener();
-                        me._trackingUserAddress = activeAccount;
+        this.ethStore
+            .pipe(
+                select(fromEth.getDefaultAccount)
+            )
+            .subscribe(activeAccount => {
+                if(activeAccount) {
+                    if(allTags && allTags.length > 0) {
+                        if (
+                            !fromEth.EthUtils.isEqualAddress(me._trackingUserAddress, activeAccount)
+                            || me._trackingAllTags !== allTags
+                        ) {
+                            console.log(`_trackEventsOnTags: Active Account changed to '${activeAccount}' while tracking or Tags changed.`);
+                            me.clearEventListener();
+                            me._trackingUserAddress = activeAccount;
+                            me._trackingAllTags = allTags;
 
-                        me._trackEventsBaseUserAddress(activeAccount, allTags, resetListeners);
+                            me._trackEventsBaseUserAddress(activeAccount, allTags, resetListeners);
+                        }
+                        else {
+                            console.log('_trackEventsOnTags: Already Tracking Events (related to these user address and tags)');
+                        }
                     }
-                });
-        }
-        else {
-            console.log('Already Tracking Events (specially those related to user address)');
-        }
+                    else {
+                        console.debug('_trackEventsOnTags: No Tags to Track!!');
+                    }
+                }
+                else {
+                    console.debug('_trackEventsOnTags: No valid Active Account');
+                }
+            });
     }
 
     private clearEventListener() {
+        //FIXME: Disabled cleaning of listeners:
+        /*
         console.log('Clearing old listeners:');
         this._eventListeners.forEach(listener => {
             listener.listener.removeAllListeners();
@@ -107,16 +122,18 @@ export class MainContractListenerManagementService {
         });
         //Empty array:
         this._eventListeners.length = 0;
+         */
     }
 
     private _createListenerTagggingAddress(tagIds: number[]): EventListener {
         if(tagIds) {
             console.debug(`Creating tagging event listener for ${tagIds.length} tags.`);
         }
-        const eventListener = this._smartContractResolved.TaggedAddress({tagId: tagIds}/*, {} NEEDS CALLBACK HERE???!! */);
+        //Test fix a value for tagIds!
+        const eventListener = this._smartContractResolved.TaggedAddress({tagId: /*tagIds*/[2/*TOFAIL!!*/]}/*, {} NEEDS CALLBACK HERE???!! */);
         eventListener
             .on('data', event => {
-                console.log("Have Data!");
+                console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
                 console.log("This Data: " + event);
                 if(!event.blockNumber) {
                     console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
@@ -196,5 +213,15 @@ export class MainContractListenerManagementService {
                 this.taggedContractStore.dispatch( new fromTagMainContract.EventTaggingAddress({tagId: tagId, ownerBalance: result.ownerBalance, totalTaggings: result.totalTaggings} ));
             });
     }
+
+
+    public testListenerTagggingAddress() {
+        console.debug(`testListenerTagggingAddress:`);
+        const eventListener = this._smartContractResolved.TaggedAddress({}, (event) => {
+            console.log("testListenerTagggingAddress: Have Data!");
+            console.log("This Data: " + event);
+        });
+    }
+
 
 }

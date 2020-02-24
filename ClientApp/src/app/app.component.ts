@@ -26,6 +26,7 @@ import {ConnectionStatusComponent} from "./connection-status/connection-status.c
 import {MainContractListenerManagementService} from "./services/main-contract-listener-management.service";
 import {AllTagsService} from "./tags/state/all-tags.service";
 import {AllTagsQuery} from "./tags/state/all-tags.query";
+import {TagMainContractService} from "./tagmaincontract";
 
 @Component({
   selector: 'app-root',
@@ -47,6 +48,7 @@ export class AppComponent {
               private mainContractEventManagementService: MainContractListenerManagementService,
               private allTagsService: AllTagsService,
               private allTagsQuery: AllTagsQuery,
+              private tagMainContractService: TagMainContractService, //TODELETE: To delete later just to test!
               private _toastrService: ToastrService,
               private overlayService: Overlay) {
       this.tagOptions = new ReplaySubject(1);
@@ -254,6 +256,14 @@ export class AppComponent {
         //Keep observable
         this.tags$ = this.allTagsQuery.selectAll();
 
+        //Active 200 ms after a change to the allTags store:
+        this.allTagsQuery.selectAll().pipe(
+            debounceTime(200) //Wait 200ms of no activity to update listeners
+        ).subscribe(allTags => {
+            console.debug('AllTags changed 200ms: ' + (allTags ? allTags.length : 0));
+            this.trackGenericEventsOnTags();
+        });
+
         //Update values related to name retrieval of Tags:
         this.allTagsQuery.selectAll().pipe(
             takeUntil(
@@ -271,11 +281,7 @@ export class AppComponent {
         });
     }
 
-    //TODELETE:
-    testCallToServiceListener() {
-        //TODO:
-        //... Will not put here but instead in the effects of main contract! We will just send an event here with the tags! And then together with the userAddress in the store of tag Main contract we do the following call:
-        //TODELETE: Remove direct call to mainContractService and use Action sent to store!:
+    trackGenericEventsOnTags() {
         this.mainContractEventManagementService.trackEventsOnTags(this.tags);
     }
 
@@ -544,5 +550,35 @@ export class AppComponent {
                 this.prepareTagging()
             });
         this.ethStore.dispatch(new fromEth.InitEth());
+    }
+
+    public trackTaggingInTag2() {
+        this.mainContractEventManagementService.testListenerTagggingAddress();
+        /*
+        this.tagMainContractService.getSmartContract().subscribe(smartContract => {
+            //const eventListener = smartContract.TaggedAddress({tagId: ["3"]});
+            const eventListener = smartContract.TaggedAddress();
+            eventListener
+                .on('data', event => {
+                    console.log("Have Data!");
+                    console.log("This Data: " + event);
+                    if(!event.blockNumber) {
+                        console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
+                        return;
+                    }
+                    else {
+                        //Do the code that needs to be done to process the event:
+                        console.log(`Taggings must be updated for ${event.returnValues.tagId}.`);
+                    }
+                })
+                .on('changed', event => {
+                    console.log("Event was removed from blockchain: " + event);
+                })
+                .on('error', error => {
+                    console.log("Error: " + error);
+                });
+            console.log('Put EventListener for Tag3: ' + eventListener);
+        });
+         */
     }
 }
