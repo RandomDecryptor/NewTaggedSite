@@ -56,7 +56,8 @@ export class MainContractListenerManagementService {
         });
 
         if(resetListeners) {
-            this.clearEventListener();
+            //FIXME: Check later if problems here!: Should be commented or not?
+            //this.clearEventListener();
         }
 
         const tagIds = tagsFromUser.map(elem => {
@@ -66,12 +67,9 @@ export class MainContractListenerManagementService {
         /*
             Catch Taggings of user owned tags
          */
-        //FIXME: JUST TESTING REMOVING TaggedAddress event from here and leave it in another place! Maybe we can only have one listener for the TaggingAddress event!!
-        /*
         const eventTaggedAddress = this._createListenerTagggingAddress(tagIds);
 
         this._eventListeners.push(eventTaggedAddress);
-         */
 
     }
 
@@ -89,7 +87,8 @@ export class MainContractListenerManagementService {
                     if(allTags && allTags.length > 0) {
                         if (
                             !fromEth.EthUtils.isEqualAddress(me._trackingUserAddress, activeAccount)
-                            || me._trackingAllTags !== allTags
+                            || me._trackingAllTags == null
+                            || allTags.length > me._trackingAllTags.length
                         ) {
                             console.log(`_trackEventsOnTags: Active Account changed to '${activeAccount}' while tracking or Tags changed.`);
                             me.clearEventListener();
@@ -114,7 +113,6 @@ export class MainContractListenerManagementService {
 
     private clearEventListener() {
         //FIXME: Disabled cleaning of listeners:
-        /*
         console.log('Clearing old listeners:');
         this._eventListeners.forEach(listener => {
             listener.listener.removeAllListeners();
@@ -122,7 +120,6 @@ export class MainContractListenerManagementService {
         });
         //Empty array:
         this._eventListeners.length = 0;
-         */
     }
 
     private _createListenerTagggingAddress(tagIds: number[]): EventListener {
@@ -131,7 +128,7 @@ export class MainContractListenerManagementService {
         }
         //Test fix a value for tagIds!
         const eventListener = this._smartContractResolved.TaggedAddress({tagId: /*tagIds*/[2/*TOFAIL!!*/]}/*, {} NEEDS CALLBACK HERE???!! */);
-        eventListener
+        const returnedListener = eventListener
             .on('data', event => {
                 console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
                 console.log("This Data: " + event);
@@ -139,7 +136,7 @@ export class MainContractListenerManagementService {
                     console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
                     return;
                 }
-                else {
+                else {0
                     //Do the code that needs to be done to process the event:
                     console.log(`Taggings must be updated for ${event.returnValues.tagId}.`);
                     this._refreshTaggings(event.returnValues.tagId);
@@ -154,6 +151,7 @@ export class MainContractListenerManagementService {
 
         const eventTaggedAddress = {
             listener: eventListener,
+            returnedListener: returnedListener,
             tagEventType: 'TaggedAddress',
             tagIds: tagIds.slice() //Clone array
         } as EventListener;

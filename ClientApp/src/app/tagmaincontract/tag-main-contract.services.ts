@@ -203,19 +203,6 @@ export class TagMainContractService {
         //Or using "PromiEvent", like .on('transactionHash' ... // .on('confirmation', directly in web3.eth.sendTransaction
         return this.getSmartContract().pipe(
             switchMap((instance: any) => {
-                instance.TaggedAddress({tagId:[]}, (event) => {
-                    console.log("*************************** testListenerTagggingAddress: Have Data111!");
-                    console.log("This Data111: " + event);
-                });
-                instance.TaggedAddress({ tagId: []})
-                    .on('data', event => {
-                        console.log("*************************** testListenerTagggingAddress: Have Data2222!");
-                        console.log("This Data222: " + event);
-                    })
-                    .on(null, event => {
-                        console.log("*************************** testListenerTagggingAddress: Have Data333!");
-                        console.log("This Data333: " + event);
-                    });
                 return from<string>(instance.tagItById(tagId, addressToTag, TagMainContractService.ZERO_ADDRESS /* 0x0 Address */,  {from: this.web3.eth.defaultAccount, gas: gasLimit, value: taggingCost}));
             }),
             //On next methods, it's the result of final creation, with the block and event results of a successful creation:
