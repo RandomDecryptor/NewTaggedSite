@@ -7,6 +7,9 @@ import {first} from "rxjs/operators";
 import * as fromEth from "../ethereum";
 import {AllTagsStore} from "../tags/state/all-tags.store";
 
+import Web3 from 'web3';
+import {AllTagsQuery} from "../tags/state/all-tags.query";
+
 interface EventListener {
     listener: any;
     tagEventType: 'TaggedAddress' | 'TagRemovedFromAddress';
@@ -26,10 +29,14 @@ export class MainContractListenerManagementService {
 
     private _trackingAllTags: Tag[] = null;
 
+    private _trackingOwnTagIds: number[];
+
     constructor(private ethStore: Store<fromEth.AppState>,
                 private taggedContractStore: Store<fromTagMainContract.AppState>,
                 private mainContractService: fromTagMainContract.TagMainContractService,
-                private allTagsStore: AllTagsStore) {
+                private allTagsStore: AllTagsStore,
+                private allTagsQuery: AllTagsQuery,
+    ) {
         this._eventListeners = [];
     }
 
@@ -95,6 +102,9 @@ export class MainContractListenerManagementService {
                             me._trackingUserAddress = activeAccount;
                             me._trackingAllTags = allTags;
 
+                            me._trackingOwnTagIds = allTags.filter(tag => fromEth.EthUtils.isEqualAddress(tag.creatorAddress, activeAccount))
+                                                    .map(tag => tag.tagId);
+
                             me._trackEventsBaseUserAddress(activeAccount, allTags, resetListeners);
                         }
                         else {
@@ -127,8 +137,8 @@ export class MainContractListenerManagementService {
             console.debug(`Creating tagging event listener for ${tagIds.length} tags.`);
         }
         //Test fix a value for tagIds!
-        const eventListener = this._smartContractResolved.TaggedAddress({tagId: /*tagIds*/[2/*TOFAIL!!*/]}/*, {} NEEDS CALLBACK HERE???!! */);
-        const returnedListener = eventListener
+        let eventListener = this._smartContractResolved.TaggedAddress({filter: { tagId: tagIds}}/*, {} NEEDS CALLBACK HERE???!! */);
+        let returnedListener = eventListener
             .on('data', event => {
                 console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
                 console.log("This Data: " + event);
@@ -136,7 +146,7 @@ export class MainContractListenerManagementService {
                     console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
                     return;
                 }
-                else {0
+                else {
                     //Do the code that needs to be done to process the event:
                     console.log(`Taggings must be updated for ${event.returnValues.tagId}.`);
                     this._refreshTaggings(event.returnValues.tagId);
@@ -148,6 +158,56 @@ export class MainContractListenerManagementService {
             .on('error', error => {
                 console.log("Error: " + error);
             });
+
+        console.debug('** How many Event Awaiting: ' + returnedListener.eventNames() + ' for tags: ' + tagIds.length);
+
+        /* NOT POSSIBLE to remove listeners and apply again in Truffle! Still tries to check the old listener and when goes to the new one considers the event has already been processed (in the dedupe function)
+        //TEsting removing and applying on the same eventListener:
+        //FIXME: But not enought as we need to be able to change the tagIds!!
+        eventListener.removeAllListeners();
+
+        eventListener = this._smartContractResolved.TaggedAddress({filter: { tagId: tagIds}});
+        returnedListener = eventListener
+            .on('data', event => {
+                console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
+                console.log("This Data: " + event);
+                if(!event.blockNumber) {
+                    console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
+                    return;
+                }
+                else {
+                    //Do the code that needs to be done to process the event:
+                    console.log(`Taggings must be updated for ${event.returnValues.tagId}.`);
+                    this._refreshTaggings(event.returnValues.tagId);
+                }
+            });
+
+        console.debug('** How many Event Awaiting2: ' + returnedListener.eventNames() + ' for tags: ' + tagIds.length);
+        */
+
+        /*
+        eventListener = this._smartContractResolved.TaggedAddress({tagId: { tagId: []}});
+        returnedListener = eventListener
+            .on('data', event => {
+                console.log("Have Data! Size tagIds2: " + (tagIds ? tagIds.length : tagIds));
+                console.log("This Data2: " + event);
+                if(!event.blockNumber) {
+                    console.log("Invalid BlockNumber2 -> Still pending on blockchain and not confirmed!");
+                    return;
+                }
+                else {
+                    //Do the code that needs to be done to process the event:
+                    console.log(`Taggings must be updated2 for ${event.returnValues.tagId}.`);
+                    this._refreshTaggings(event.returnValues.tagId);
+                }
+            })
+            .on('changed', event => {
+                console.log("Event was removed from blockchain2: " + event);
+            })
+            .on('error', error => {
+                console.log("Error2: " + error);
+            });
+         */
 
         const eventTaggedAddress = {
             listener: eventListener,
