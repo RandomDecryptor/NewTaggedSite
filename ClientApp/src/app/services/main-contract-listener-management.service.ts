@@ -29,7 +29,7 @@ export class MainContractListenerManagementService {
 
     private _trackingAllTags: Tag[] = null;
 
-    private _trackingOwnTagIds: number[];
+    private _trackingOwnTagIds: string[];
 
     constructor(private ethStore: Store<fromEth.AppState>,
                 private taggedContractStore: Store<fromTagMainContract.AppState>,
@@ -103,7 +103,7 @@ export class MainContractListenerManagementService {
                             me._trackingAllTags = allTags;
 
                             me._trackingOwnTagIds = allTags.filter(tag => fromEth.EthUtils.isEqualAddress(tag.creatorAddress, activeAccount))
-                                                    .map(tag => tag.tagId);
+                                                    .map(tag => "" + tag.tagId); //Convert also to String, as return values gotten from the Events came also in String format!
 
                             me._trackEventsBaseUserAddress(activeAccount, allTags, resetListeners);
                         }
@@ -137,11 +137,18 @@ export class MainContractListenerManagementService {
             console.debug(`Creating tagging event listener for ${tagIds.length} tags.`);
         }
         //Test fix a value for tagIds!
-        let eventListener = this._smartContractResolved.TaggedAddress({filter: { tagId: tagIds}}/*, {} NEEDS CALLBACK HERE???!! */);
+        //let eventListener = this._smartContractResolved.TaggedAddress({filter: { tagId: tagIds}}/*, {} NEEDS CALLBACK HERE???!! */);
+        let eventListener = this._smartContractResolved.TaggedAddress({});
         let returnedListener = eventListener
             .on('data', event => {
                 console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
                 console.log("This Data: " + event);
+                if(this._trackingOwnTagIds.findIndex(value => value === event.returnValues.tagId) >= 0) {
+                    console.log(" ***************************** Interesting EVent TaggedAddress: " + event.returnValues.tagId);
+                }
+                else {
+                    return;
+                }
                 if(!event.blockNumber) {
                     console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
                     return;
