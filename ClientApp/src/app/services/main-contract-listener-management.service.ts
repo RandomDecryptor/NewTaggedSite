@@ -122,14 +122,15 @@ export class MainContractListenerManagementService {
     }
 
     private clearEventListener() {
-        //FIXME: Disabled cleaning of listeners:
-        console.log('Clearing old listeners:');
+        console.log('Clearing old listeners: BLOCKED! With Truffle not possible to correctly removeListener and then listen again!');
+        /*
         this._eventListeners.forEach(listener => {
             listener.listener.removeAllListeners();
             console.debug('Stopped watching : \tEventType: ' + listener.tagEventType);
         });
         //Empty array:
         this._eventListeners.length = 0;
+         */
     }
 
     private _createListenerTagggingAddress(tagIds: number[]): EventListener {
