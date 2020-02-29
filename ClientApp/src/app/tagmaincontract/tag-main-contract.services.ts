@@ -4,7 +4,7 @@ import {SmartContract} from '../services/tokens';
 import {TruffleContract} from 'truffle-contract';
 
 import {Observable, of, from, EMPTY} from 'rxjs';
-import {map, tap, catchError, switchMap} from 'rxjs/operators';
+import {map, tap, switchMap} from 'rxjs/operators';
 
 // Web3
 import {WEB3} from '../services/tokens';
@@ -115,6 +115,22 @@ export class TagMainContractService {
             map(tags => this.convertToTagsArray(tags, 0))
         );
 
+    }
+
+    public getTagFullInfo(tagId: number): Observable<Tag> {
+        return this.getSmartContract().pipe(
+            switchMap((instance: any) => from<any>(instance.tagsCreated(tagId))),
+            map(tagInfo => ({
+                tagId: tagId,
+                name: null,
+                symbol: null,
+                ownerBalance: tagInfo.ownerBalance,
+                totalTaggings: tagInfo.totalTaggings,
+                creatorAddress: tagInfo.creator,
+                contractAddress: tagInfo.tagContract,
+                tagIndex: -1
+            }))
+        );
     }
 
     private convertToTagsArray(tags: any, baseIndex: number): Tag[] {

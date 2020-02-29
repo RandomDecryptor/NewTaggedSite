@@ -1,10 +1,10 @@
 /*
-	@2019 FC. All rights reserved.
+	@2019-2020 FC. All rights reserved.
 */
-import {AfterContentInit, Component, Inject} from '@angular/core';
+import {Component} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {from, Observable, of, ReplaySubject, Subject} from 'rxjs';
+import {Observable, of, ReplaySubject, Subject} from 'rxjs';
 import {debounceTime, filter, first, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
@@ -177,6 +177,7 @@ export class AppComponent {
                 if(createdTagPayload) {
                     const {creationAddressData, result } = { creationAddressData: createdTagPayload.data, result: createdTagPayload.result};
                     console.log(`Created Tag '${creationAddressData.tagName}' in transaction '${result.tx}'` );
+                    this.allTagsService.checkNewTag((parseInt(result.logs[0].args.tagId))/*createTag({})*/);
                     this.taggedContractStore.dispatch(new fromAction.NotifyUser({
                         type: fromTagMainContract.NotificationType.INFO,
                         msg: `Created Tag: ${creationAddressData.tagName}`
