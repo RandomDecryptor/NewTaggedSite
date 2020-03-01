@@ -4,8 +4,8 @@
 import {Component} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
-import {Observable, of, ReplaySubject, Subject} from 'rxjs';
-import {debounceTime, filter, first, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {combineLatest, Observable, of, ReplaySubject, Subject} from 'rxjs';
+import {catchError, debounceTime, filter, first, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
 import * as fromTagMainContract from './tagmaincontract';
@@ -68,6 +68,8 @@ export class AppComponent {
     private tags: Tag[]; //Not Observable here, because we want the tags available at the moment, and not await for them or subscribe to them!
 
     private tags$: Observable<Tag[]>;
+
+    private ownTags$: Observable<Tag[]>;
 
     private userNotifications$: Observable<fromTagMainContract.UserNotif[]>;
 
@@ -253,6 +255,25 @@ export class AppComponent {
             console.debug('AllTags changed: ' + (allTags ? allTags.length : 0));
             this.tags = allTags;
         });
+
+        //Keep track of own tags (in which the selected account at the moment is the creator address of the tags):
+        this.ownTags$ = combineLatest(this.ethStore
+            .pipe(
+                select(fromEth.getDefaultAccount)
+            ),
+            this.allTagsQuery.selectAll()
+        ).pipe(
+            switchMap(([userAccount, allTags]) => {
+                if(userAccount && allTags && allTags.length > 0) {
+                    return this.allTagsQuery.getCreatorTags(userAccount);
+                }
+                else return of([]);
+            }),
+            catchError(error => {
+                console.error('Error detected in tracking own tags: ' + error);
+                return of([]);
+            })
+        );
 
         //Keep observable
         this.tags$ = this.allTagsQuery.selectAll();
@@ -459,8 +480,8 @@ export class AppComponent {
   }
 
     private fillInTagName(tags: Tag[]) {
-        let counter = tags.length;
         const tagsMissingName = tags.filter(value => !value.name);
+        let counter = tagsMissingName.length;
         tagsMissingName.forEach(tag => {
             //Get name for each tag:
             this.tagContractService.getName(tag.contractAddress).subscribe(name => {
@@ -468,7 +489,9 @@ export class AppComponent {
                 this.allTagsService.update(tag.tagId, {name: name});
                 if(counter-- <= 0) {
                     console.debug('Gotten all tag names: Name retrieval terminated.');
-                    this._terminateNameRetrieval.complete();
+                    if(!this._terminateNameRetrieval.closed) {
+                        this._terminateNameRetrieval.complete();
+                    }
                 }
             });
         });
@@ -582,4 +605,5 @@ export class AppComponent {
         });
          */
     }
+
 }

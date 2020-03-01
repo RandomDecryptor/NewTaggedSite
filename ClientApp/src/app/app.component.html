@@ -34,7 +34,7 @@
 <br/><br/><br/><br/>
 
 
-<app-your-tags [tags]="tags$"></app-your-tags>
+<app-your-tags [tags]="ownTags$" *ngIf="(ownTags$ | async).length > 0"></app-your-tags>
 
 <button mat-raised-button (click)="trackTaggingInTag2()" >Test Event Listeners</button>
 <button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
