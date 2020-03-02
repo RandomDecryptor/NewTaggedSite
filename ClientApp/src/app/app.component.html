@@ -31,6 +31,8 @@
 
 <app-tagging-panel [data]="currentTaggingData" (toTag)="onTagging()" (toConnectWallet)="onTaggingConnectWallet()" *ngIf="taggingAvailable"></app-tagging-panel>
 
+<app-remove-tagging-panel [data]="currentRemoveTaggingData" (toRemoveTag)="onRemoveTagging()" *ngIf="removeTaggingAvailable"></app-remove-tagging-panel>
+
 <br/><br/><br/><br/>
 
 

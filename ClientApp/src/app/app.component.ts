@@ -27,6 +27,7 @@ import {MainContractListenerManagementService} from "./services/main-contract-li
 import {AllTagsService} from "./tags/state/all-tags.service";
 import {AllTagsQuery} from "./tags/state/all-tags.query";
 import {TagMainContractService} from "./tagmaincontract";
+import {TagRemoveTaggingData} from "./remove-tagging/tag-remove-tagging-data";
 
 @Component({
   selector: 'app-root',
@@ -77,6 +78,8 @@ export class AppComponent {
 
     private _taggingAvailable = false;
 
+    private _removeTaggingAvailable = false;
+
     private _currentTagName: string = ""; //Used for Creation (not existing Tag yet!)
 
     private _currentTag: Tag = null; //Used for current selected already existing Tag
@@ -84,6 +87,8 @@ export class AppComponent {
     private _userAddress = null;
 
     private _currentTaggingData: TagTaggingData = { addressToTag: null, taggingCost: null, tag: null, estimated: false };
+
+    private _currentRemoveTaggingData: TagRemoveTaggingData = { currentUserAddress: null, addressToRemoveTag: null, tag: null };
 
     private _overlayConnectionStatusRef: OverlayRef = null;
 
@@ -93,6 +98,10 @@ export class AppComponent {
 
     get taggingAvailable() {
         return this._taggingAvailable;
+    }
+
+    get removeTaggingAvailable() {
+        return this._removeTaggingAvailable;
     }
 
     get currentTagName() {
@@ -105,6 +114,10 @@ export class AppComponent {
 
     get currentTaggingData() {
         return this._currentTaggingData;
+    }
+
+    get currentRemoveTaggingData() {
+        return this._currentRemoveTaggingData;
     }
 
     ngOnInit() {
@@ -459,6 +472,7 @@ export class AppComponent {
         //An already existing tag was selected:
         this._currentTag = optionSelected;
         this.prepareTagging();
+        this.prepareRemoveTagging();
     }
     else {
         console.log('Options Deselected: ' + optionSelected ? optionSelected.name : 'No Name');
@@ -514,6 +528,17 @@ export class AppComponent {
                 }
             }
             this.processValue(cost, (value) => this.gotoTagging(value, estimation)); //Had to create Fat Arrow here to create an extra function, just to keep the correct "this"!
+        }
+    }
+
+    prepareRemoveTagging() {
+        let estimation = false;
+        if(this._currentTag && this._userAddress) {
+            console.log(`Preparing removing of tagging of Tag "${this._currentTag.name}" for "0" Wei`);
+            this._currentRemoveTaggingData.tag = this._currentTag;
+            this._currentRemoveTaggingData.addressToRemoveTag = ''; //Clean address to tag field
+            this._currentRemoveTaggingData.currentUserAddress = this._userAddress;
+            this._removeTaggingAvailable = true;
         }
     }
 
@@ -606,4 +631,7 @@ export class AppComponent {
          */
     }
 
+    onRemoveTagging() {
+        console.log('TODO: onRemoveTagging!');
+    }
 }

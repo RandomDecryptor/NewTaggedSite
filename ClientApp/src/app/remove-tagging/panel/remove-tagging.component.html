@@ -1,0 +1,21 @@
+<mat-divider></mat-divider>
+
+<form  fxLayout="row " fxLayoutAlign="center center">
+    <div fxLayout="column " fxLayoutAlign="start start" fxLayoutGap="10px" class="example-form">
+        <h3 mat-subheader>Remove tagging "{{data.tag.name}}" from an address</h3>
+        <mat-form-field class="example-full-width">
+            <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
+        </mat-form-field>
+        <mat-form-field class="example-full-width">
+            <!-- [a-zA-Z!#-&(-/:;=?@€£§{}[]´`~^_|«»0-9 ]|[\xc0-\xfe] -->
+            <input type="text" maxlength="42" name="addressToRemoveTag" appRestrictTo="[a-fxA-FX0-9]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick an address to remove tag from" aria-label="Selected Address Name" [formControl]="myControl" [matAutocomplete]="autoAddressToRemove" >
+            <mat-autocomplete autoActiveFirstOption #autoAddressToRemove="matAutocomplete" [displayWith]="displayFn">
+                <mat-option *ngFor="let option of filteredAddresses | async" [value]="option" (onSelectionChange)="selectionChanged($event, option)" >{{option}}</mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <div *ngIf="data.addressToRemoveTag.length == 42" class="example-full-width bottom-margin" >
+            <button class="example-full-width" mat-raised-button type="button" (mouseup)="onRemoveTagging()" [innerHtml]="('Remove tag from address \'' + (data.addressToRemoveTag | colorizeAddress) + '\'') | keepHtml"></button>
+        </div>
+    </div>
+</form>

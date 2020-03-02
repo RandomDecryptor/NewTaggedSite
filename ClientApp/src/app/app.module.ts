@@ -60,6 +60,7 @@ import { YourTagsComponent } from './consultation/your-tags/your-tags.component'
 
 import { enableAkitaProdMode } from '@datorama/akita';
 import {AkitaNgDevtools} from '@datorama/akita-ngdevtools';
+import {RemoveTaggingComponent} from "./remove-tagging/panel/remove-tagging.component";
 
 if (environment.production) {
     enableAkitaProdMode();
@@ -81,6 +82,7 @@ if (environment.production) {
     ConnectWalletComponent,
     ConnectEthereumNetworkComponent,
     YourTagsComponent,
+    RemoveTaggingComponent,
   ],
     entryComponents: [
         TagCreationDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!
