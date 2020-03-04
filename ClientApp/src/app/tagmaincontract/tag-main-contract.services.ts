@@ -20,7 +20,10 @@ export class TagMainContractService {
 
     //private _contractAddress = "0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe"; //Test Net Ropsten Contract Address
     //private _contractAddress = "0xf2c3E188317aecD6AA8378e80ab72196954c03BA"; //Ganache Local Network Test new-tagged
-    private _contractAddress = "0x0824a71C5F61DC213Eb7c5830192a311F079Da09"; //Ganache Local Network Test new-tagged (New Value: Complete Contract Redeployed!)
+    //private _contractAddress = "0x0824a71C5F61DC213Eb7c5830192a311F079Da09"; //Ganache Local Network Test new-tagged (New Value: Complete Contract Redeployed!)
+    //private _contractAddress = "0x32ab2d2549bDF1674B617FD6cdb6a070193d2428"; //ganache-cli Local Network Test newtagged3 (New Value: Complete Contract Redeployed!)
+    private _contractAddress = "0xdBaF944889A03715a9BC26590899109cb6dA134b"; //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
+
 
     constructor(@Inject(WEB3) private web3: Web3,
                 @Inject(SmartContract) private smartContract: TruffleContract) {
