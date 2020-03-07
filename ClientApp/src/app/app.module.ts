@@ -61,6 +61,7 @@ import { YourTagsComponent } from './consultation/your-tags/your-tags.component'
 import { enableAkitaProdMode } from '@datorama/akita';
 import {AkitaNgDevtools} from '@datorama/akita-ngdevtools';
 import {RemoveTaggingComponent} from "./remove-tagging/panel/remove-tagging.component";
+import {TaggedContractAddress} from "./services/tokens";
 
 if (environment.production) {
     enableAkitaProdMode();
@@ -128,7 +129,8 @@ if (environment.production) {
 
     ],
   providers: [
-      ContrastCheckerService
+      ContrastCheckerService,
+      { provide: TaggedContractAddress, useValue: '0xdBaF944889A03715a9BC26590899109cb6dA134b' } //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
   ],
   bootstrap: [AppComponent]
 })

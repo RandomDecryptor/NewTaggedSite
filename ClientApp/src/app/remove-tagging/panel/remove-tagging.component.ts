@@ -3,7 +3,6 @@ import {TagRemoveTaggingData} from "../tag-remove-tagging-data";
 import {FormControl} from "@angular/forms";
 import {debounceTime, map, startWith, switchMap, tap} from "rxjs/operators";
 import {Observable, ReplaySubject} from "rxjs";
-import {Tag} from "../../tags/tags.model";
 import {MainContractHighLevelService} from "../../services/main-contract-high-level.service";
 import {MatOptionSelectionChange} from "@angular/material";
 

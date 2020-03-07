@@ -1,6 +1,6 @@
 import {Inject, Injectable} from '@angular/core';
 
-import {SmartContract, WEB3} from "../../services/tokens";
+import {SmartContract, TaggedContractAddress, WEB3} from "../../services/tokens";
 import Web3 from 'web3';
 import {TruffleContract} from 'truffle-contract';
 
@@ -15,7 +15,7 @@ export class EthereumMainContractService {
 
     static readonly ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-    private _contractAddress = "0xdBaF944889A03715a9BC26590899109cb6dA134b"; //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
+    private _contractAddress = null; //"0xdBaF944889A03715a9BC26590899109cb6dA134b"; //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
 
     private _smartContract$: Observable<any> = null;
     private _smartContractResolved: any = null;
@@ -23,7 +23,9 @@ export class EthereumMainContractService {
     private _defaultAccount = null;
 
     constructor(@Inject(WEB3) private web3: Web3,
-                @Inject(SmartContract) private smartContract: TruffleContract) {
+                @Inject(SmartContract) private smartContract: TruffleContract,
+                @Inject(TaggedContractAddress) smartContractAddress: string) {
+        this._contractAddress = smartContractAddress;
     }
 
     public getSmartContract() {

@@ -33,5 +33,4 @@ export const SimpleTagSmartContract = new InjectionToken<contract>('simpleTagSma
 
 });
 
-
-
+export const TaggedContractAddress = new InjectionToken<string>('taggedContractAddress');
