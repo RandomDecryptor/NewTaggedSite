@@ -19,12 +19,18 @@ export class RemoveTaggingComponent implements OnInit {
 
     private _data: TagRemoveTaggingData;
 
+    private _currentAddressToRemove: string;
+
     @Output() toRemoveTag: EventEmitter<TagRemoveTaggingData> = new EventEmitter();
 
-    static readonly debounceTimeRemoveTaggingButton = 1000;
+    static readonly debounceTimeRemoveTaggingButton = 500;
 
     constructor(private contractHLService: MainContractHighLevelService) {
         this.addressOptions = new ReplaySubject(1);
+    }
+
+    get currentAddressToRemove(): string {
+        return this._currentAddressToRemove;
     }
 
     get data(): TagRemoveTaggingData {
@@ -62,15 +68,21 @@ export class RemoveTaggingComponent implements OnInit {
                     }
                 }),
                 map(value => typeof value === 'string' ? value : value[0]), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
-                tap(() => {
-                    //this._creationAvailable = false;
+                tap(value => {
+                    if(value !== this._currentAddressToRemove) {
+                        //Value was changed: Reset current address to remove:
+                        this._currentAddressToRemove = null;
+                    }
                 } ), //Disable creation button again until the debounce time passes and we have finally a new value to use!
-                debounceTime(RemoveTaggingComponent.debounceTimeRemoveTaggingButton) //Wait 1 seconds to signal change in value
+                debounceTime(RemoveTaggingComponent.debounceTimeRemoveTaggingButton) //Wait 0.5 seconds to signal change in value
             ).subscribe(value => 1/*this._tagNameChanged(value)*/);
 
     }
 
     onRemoveTagging(): void {
+        //Update address to remove tag:
+        this.data.addressToRemoveTag = this._currentAddressToRemove;
+        //signal a new address to remove a tag from:
         this.toRemoveTag.next(this.data);
     }
 
@@ -92,5 +104,17 @@ export class RemoveTaggingComponent implements OnInit {
 
     selectionChanged($event: MatOptionSelectionChange, option: string) {
         console.log('RemoveTagging: selectionChanged: TODO');
+        if($event.source.selected) {
+            console.log('Options Selected: ' + option);
+            //Address to remove:
+            this._currentAddressToRemove = option;
+            //this.prepareRemoveTagging();
+        }
+        else {
+            console.log('Options Deselected: ' + option);
+            //this._currentAddressToRemove = null;
+        }
+
     }
+
 }

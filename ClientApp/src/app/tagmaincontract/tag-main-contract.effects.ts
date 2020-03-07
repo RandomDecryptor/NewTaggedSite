@@ -6,13 +6,14 @@ import {Action, select, Store} from '@ngrx/store';
 import {merge, Observable, of} from 'rxjs';
 
 import * as fromAction from './tag-main-contract.actions.internal';
-import {EventType, NotificationType} from './tag-main-contract.actions.internal';
+import {EventType} from './tag-main-contract.actions.internal';
 import * as fromActionEth from '../ethereum/eth.actions';
 // RXJS
 import {catchError, concatMap, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {TagCreationData} from "../creation/tag-creation-data";
 import {AppState, getActionsWaitingForEthInit} from './tag-main-contract.reducers';
 import {TagTaggingData} from "../tagging/tag-tagging-data";
+import {NotificationType} from "../notifications/notifications";
 
 @Injectable()
 export class TagMainContractEffects {
@@ -221,23 +222,7 @@ export class TagMainContractEffects {
     EthErrorDetectedAction$: Observable<Action> = createEffect(() => this.actions$.pipe(
         ofType(fromAction.ActionTypes.ETH_ERROR),
         map((action) => new fromAction.NotifyUser({type: NotificationType.ERR, msg: `${action.payload}`}))
-        //TODO: To do on reduce: Add message to variable on store! Variable would keep all messages currently showing on screen, that the user has not cleared yet!
         )
     );
-
-    /*
-        @Effect()
-        SetAttack$: Observable<Action> = this.actions$.pipe(
-            ofType(fromAction.ActionTypes.SET_ATTACK),
-            map((action: fromAction.SetAttack) => action.payload),
-            exhaustMap((name: string) => this.tagMainContractService.setAttack(name).pipe(
-                tap(result => console.log('result', result)),
-                // retrieve the log information that will contain the event data.
-                map(result => result.logs[0].args[0]),
-                map((newName: string) => new fromAction.SetAttackSuccess(newName)),
-                catchError(err => of(new fromAction.EthError(err)))
-            )),
-        );
-    */
 
 }

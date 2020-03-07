@@ -1,8 +1,7 @@
 import * as tagMainContractActions from './tag-main-contract.actions.internal';
-import {ActionReducerMap, createSelector, createFeatureSelector, Action} from '@ngrx/store';
+import {Action, ActionReducerMap, createFeatureSelector, createSelector} from '@ngrx/store';
 import * as root from '../reducers';
 import {Tag} from "../tags/tags.model";
-import {UserNotif} from "./tag-main-contract.actions.internal";
 import {TagCreationData} from "../creation/tag-creation-data";
 import {TaggingEventData, TagTaggingData} from "../tagging/tag-tagging-data";
 
@@ -16,7 +15,7 @@ export interface State {
     tags: Tag[];
     actionsWaitingForEthInit: Action[];
     userNotifications: tagMainContractActions.UserNotif[];
-    lastUserNotification: UserNotif;
+    lastUserNotification: tagMainContractActions.UserNotif;
     createdTag: { data: TagCreationData, result: any};
     taggedAddress: { data: TagTaggingData, result: any};
     uid: number;
@@ -87,7 +86,7 @@ export const reducer = (state = initialState, action: tagMainContractActions.Tag
 
         case (tagMainContractActions.ActionTypes.NOTIFY_USER): {
             const newUid = state.uid + 1;
-            const newUserNotif: UserNotif = { type: action.payload.type, msg: action.payload.msg, uid: newUid };
+            const newUserNotif: tagMainContractActions.UserNotif = { type: action.payload.type, msg: action.payload.msg, uid: newUid };
             return {...state, userNotifications: [...state.userNotifications, newUserNotif ], uid: newUid, lastUserNotification: newUserNotif};
         }
 

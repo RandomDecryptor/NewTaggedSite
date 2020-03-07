@@ -9,6 +9,7 @@ import {catchError, debounceTime, filter, first, map, startWith, switchMap, take
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
 import * as fromTagMainContract from './tagmaincontract';
+import {UserNotif} from './tagmaincontract';
 import {Tag} from "./tags/tags.model";
 import {TagCreationDialogComponent} from "./creation/dialog/tag-creation-dialog.component";
 import {TagCreationData} from "./creation/tag-creation-data";
@@ -21,13 +22,21 @@ import {TagContractService} from "./tagmaincontract/tagcontract/tag-contract.ser
 import {TagTaggingData} from "./tagging/tag-tagging-data";
 
 import {Overlay, OverlayRef} from '@angular/cdk/overlay';
-import { ComponentPortal } from '@angular/cdk/portal';
+import {ComponentPortal} from '@angular/cdk/portal';
 import {ConnectionStatusComponent} from "./connection-status/connection-status.component";
 import {MainContractListenerManagementService} from "./services/main-contract-listener-management.service";
 import {AllTagsService} from "./tags/state/all-tags.service";
 import {AllTagsQuery} from "./tags/state/all-tags.query";
-import {TagMainContractService} from "./tagmaincontract";
 import {TagRemoveTaggingData} from "./remove-tagging/tag-remove-tagging-data";
+import {MainContractService} from "./tags/state/main-contract.service";
+import {MainContractQuery} from "./tags/state/main-contract.query";
+import {NotificationType} from "./notifications/notifications";
+import {NotificationQuery} from "./notifications/state/notification.query";
+import {NotificationService} from "./notifications/state/notification.service";
+import {createNotification, UsrNotification} from "./notifications/state/notification.model";
+
+import { filterNil } from '@datorama/akita';
+import {EthereumMainContractService} from "./tags/ethereum/ethereum.main-contract.service";
 
 @Component({
   selector: 'app-root',
@@ -49,7 +58,10 @@ export class AppComponent {
               private mainContractEventManagementService: MainContractListenerManagementService,
               private allTagsService: AllTagsService,
               private allTagsQuery: AllTagsQuery,
-              private tagMainContractService: TagMainContractService, //TODELETE: To delete later just to test!
+              private mainContractService: MainContractService,
+              private mainContractQuery: MainContractQuery,
+              private notificationService: NotificationService,
+              private notificationQuery: NotificationQuery,
               private _toastrService: ToastrService,
               private overlayService: Overlay) {
       this.tagOptions = new ReplaySubject(1);
@@ -72,7 +84,9 @@ export class AppComponent {
 
     private ownTags$: Observable<Tag[]>;
 
-    private userNotifications$: Observable<fromTagMainContract.UserNotif[]>;
+    private userNotifications$: Observable<UserNotif[]>;
+
+    private notifications$: Observable<UsrNotification[]>;
 
     private _creationAvailable = false;
 
@@ -194,7 +208,7 @@ export class AppComponent {
                     console.log(`Created Tag '${creationAddressData.tagName}' in transaction '${result.tx}'` );
                     this.allTagsService.checkNewTag((parseInt(result.logs[0].args.tagId))/*createTag({})*/);
                     this.taggedContractStore.dispatch(new fromAction.NotifyUser({
-                        type: fromTagMainContract.NotificationType.INFO,
+                        type: NotificationType.INFO,
                         msg: `Created Tag: ${creationAddressData.tagName}`
                     }));
                 }
@@ -209,7 +223,7 @@ export class AppComponent {
                     const {taggedAddressData, result } = { taggedAddressData: taggedAddressPayload.data, result: taggedAddressPayload.result};
                     console.log(`Tagged Address '${taggedAddressData.addressToTag}' in transaction '${result.tx}'`);
                     this.taggedContractStore.dispatch(new fromAction.NotifyUser({
-                        type: fromTagMainContract.NotificationType.INFO,
+                        type: NotificationType.INFO,
                         msg: `Tagged address '${taggedAddressData.addressToTag}' with tag '${taggedAddressData.tag.name}'`
                     }));
                     //ALTERATIVE: Could also have caught the events sent by the Ethereum network like method createListenerTagggingAddress() in old "Main.js"
@@ -220,7 +234,7 @@ export class AppComponent {
             .pipe(
                 select(fromTagMainContract.getLastUserNotification)
             )
-            .subscribe((userNotif: fromTagMainContract.UserNotif) => {
+            .subscribe((userNotif: UserNotif) => {
                 if(userNotif) { //Check if we have any notification to show!
                     //console.log(`Last User Notif: ${userNotif.uid} - ${userNotif.type} - ${userNotif.msg}`);
                     //Will keep field tags always updated with the latest version of the already created tags:
@@ -237,10 +251,10 @@ export class AppComponent {
                         extendedTimeOut: 5000, //If the user hovers the notification, wait for more 5 seconds!
                         closeButton: true,
                     };
-                    if(userNotif.type === fromTagMainContract.NotificationType.ERR) {
+                    if(userNotif.type === NotificationType.ERR) {
                         this._toastrService.error(userNotif.msg, undefined, defaultNotifConfig);
                     }
-                    else if(userNotif.type === fromTagMainContract.NotificationType.WARN) {
+                    else if(userNotif.type === NotificationType.WARN) {
                         this._toastrService.warning(userNotif.msg, undefined, defaultNotifConfig);
                     }
                     else {
@@ -310,6 +324,41 @@ export class AppComponent {
             //We gotten an updated tag name, update also the tagOptions, so observers can render new tag name value:
             this.tagOptions.next(allTags);
         });
+
+        this.mainContractQuery.select("removeTaggingAddress").pipe(
+            filterNil //Value must have something: Ignore Null/Undefined values
+        ).subscribe(removeTaggingAddress => {
+                const { data, result } = removeTaggingAddress;
+                this.notificationService.add( createNotification({
+                    type: NotificationType.INFO,
+                    msg: `Removed tagging from address '${data.addressToRemoveTag}' with tag '${data.tag.name}'`
+                }));
+
+            });
+        //Check for any notifications (using Akita instead of NgRx):
+        this.notificationQuery.selectLast()
+            .subscribe(lastNotification => {
+                if(lastNotification) {
+                    const defaultNotifConfig = {
+                        timeOut: 100000,
+                        tapToDismiss: false,
+                        positionClass: 'toast-bottom-full-width',
+                        extendedTimeOut: 5000, //If the user hovers the notification, wait for more 5 seconds!
+                        closeButton: true,
+                    };
+                    if(lastNotification.type === NotificationType.ERR) {
+                        this._toastrService.error(lastNotification.msg, undefined, defaultNotifConfig);
+                    }
+                    else if(lastNotification.type === NotificationType.WARN) {
+                        this._toastrService.warning(lastNotification.msg, undefined, defaultNotifConfig);
+                    }
+                    else {
+                        this._toastrService.info(lastNotification.msg, undefined, defaultNotifConfig);
+                    }
+                }
+            });
+
+        this.notifications$ = this.notificationQuery.selectAll();
 
         setTimeout(() => { //Wait for next rendering tick!
             this._showConnectionStatus()
@@ -565,7 +614,7 @@ export class AppComponent {
             taggingData.tag = clonedTag;
             this.ethStore.dispatch(new fromAction.TaggingAddress(taggingData));
 
-            //Hide button for creation, as one creation is already in progress:
+            //Hide button for tagging, as one tagging is already in progress:
             this._taggingAvailable = false;
 
             //Reset current tagging data:
@@ -632,6 +681,25 @@ export class AppComponent {
     }
 
     onRemoveTagging() {
-        console.log('TODO: onRemoveTagging!');
+        console.log('onRemoveTagging!');
+        if(this._currentRemoveTaggingData) {
+            console.log(`Tag name to use for tagging: ${this._currentRemoveTaggingData.tag.name}`);
+            console.log(`Address to remove tag: ${this._currentRemoveTaggingData.addressToRemoveTag}`);
+            let removeTaggingData = { ...this._currentRemoveTaggingData }; //Clone current tagging data!
+            //Reclone Tag, so it doesn't become read-only!:
+            let clonedTag = { ...this._currentRemoveTaggingData.tag };
+            removeTaggingData.tag = clonedTag;
+
+            //Using Akita instead of NgRx:
+            //this.ethStore.dispatch(new fromAction.RemoveTaggingAddress(removeTaggingData));
+            this.mainContractService.removeTagging(removeTaggingData);
+
+            //Hide button for tagging, as one tagging is already in progress:
+            this._removeTaggingAvailable = false;
+
+            //Reset current remove tagging data:
+            //this._currentRemoveTaggingData = { addressToRemoveTag: null, tag: null };
+        }
+
     }
 }

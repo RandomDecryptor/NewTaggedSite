@@ -230,4 +230,21 @@ export class TagMainContractService {
 
     }
 
+    /**
+     * Remove a tagging from an address specified by the user.s
+     * When removing a tagging is because for sure the user has already logged in with his wallet (Needed to know which addresses are possible to remove taggings from!)
+     */
+    public removeTagging(tagId: number, addressToRemoveTaggging: string): Observable<boolean> {
+        const gasLimit = 6000000; //TODO: Decrease gas limit ! Doesn't need to be so high!
+        return this.getSmartContract().pipe(
+            switchMap((instance: any) => {
+                //Can't use this.web3.eth.defaultAccount the first time! Not working for Remove Tagging, have no idea why! in the TaggingAddress worked without problems!
+                return from<boolean>(instance.removeTagById(tagId, addressToRemoveTaggging, {from: this.web3.eth.defaultAccount, gas: gasLimit }));
+            }),
+            //On next methods, it's the result of final creation, with the block and event results of a successful creation:
+            tap(value => console.log("Remove Tagging address return: " + value)), //Should be True / False! Or Any??? Result of Transaction! TODO: Check and update accordingly!
+        );
+
+    }
+
 }

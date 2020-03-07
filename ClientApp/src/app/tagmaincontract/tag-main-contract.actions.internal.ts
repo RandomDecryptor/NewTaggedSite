@@ -1,7 +1,8 @@
-import { Action } from '@ngrx/store';
+import {Action} from '@ngrx/store';
 import {Tag} from "../tags/tags.model";
 import {TagCreationData} from "../creation/tag-creation-data";
 import {TaggingEventData, TagTaggingData} from "../tagging/tag-tagging-data";
+import {NotificationType} from "../notifications/notifications";
 
 export enum ActionTypes {
   GET_TAGGING_COST = '[Tag Main Contract] Get Tagging Cost',
@@ -43,21 +44,15 @@ export class GetTaggingCostSuccess implements Action {
   constructor(public payload: string) {}
 }
 
-export enum NotificationType {
-    INFO,
-    WARN,
-    ERR
+export interface UserNotif {
+    uid: number;
+    type: NotificationType;
+    msg: string;
 }
 
 export class NotifyUser implements Action {
     readonly type = ActionTypes.NOTIFY_USER;
     constructor(public payload: { type: NotificationType, msg: string}) {}
-}
-
-export interface UserNotif {
-    uid: number;
-    type: NotificationType;
-    msg: string;
 }
 
 

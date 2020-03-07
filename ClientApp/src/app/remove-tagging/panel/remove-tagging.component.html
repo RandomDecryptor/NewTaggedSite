@@ -12,9 +12,8 @@
                 <mat-option *ngFor="let option of filteredAddresses | async" [value]="option" (onSelectionChange)="selectionChanged($event, option)" >{{option}}</mat-option>
             </mat-autocomplete>
         </mat-form-field>
-
-        <div *ngIf="data.addressToRemoveTag.length == 42" class="example-full-width bottom-margin" >
-            <button class="example-full-width" mat-raised-button type="button" (mouseup)="onRemoveTagging()" [innerHtml]="('Remove tag from address \'' + (data.addressToRemoveTag | colorizeAddress) + '\'') | keepHtml"></button>
+        <div *ngIf="!!currentAddressToRemove" class="example-full-width bottom-margin" >
+            <button class="example-full-width" mat-raised-button type="button" (mouseup)="onRemoveTagging()" [innerHtml]="('Remove tag from address \'' + (currentAddressToRemove | colorizeAddress) + '\'') | keepHtml"></button>
         </div>
     </div>
 </form>
