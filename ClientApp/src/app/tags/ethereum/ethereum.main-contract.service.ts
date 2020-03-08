@@ -4,8 +4,8 @@ import {SmartContract, TaggedContractAddress, WEB3} from "../../services/tokens"
 import Web3 from 'web3';
 import {TruffleContract} from 'truffle-contract';
 
-import {from, Observable, of} from "rxjs";
-import {catchError, map, switchMap, tap} from "rxjs/operators";
+import {combineLatest, from, Observable, of} from "rxjs";
+import {catchError, first, map, switchMap, tap} from "rxjs/operators";
 import {EthereumMainContractException} from "./exceptions";
 
 @Injectable({
@@ -93,6 +93,38 @@ export class EthereumMainContractService {
             }),
             //On next methods, it's the result of final creation, with the block and event results of a successful creation:
             tap(value => console.log("Remove Tagging address return: " + value)), //Should be True / False! Or Any??? Result of Transaction! TODO: Check and update accordingly!
+        );
+    }
+
+    /**
+     *
+     * Main Contract High Level Helper Methods that can get information from various events and services at the same time.
+     *
+     */
+    public selectAllTaggingRemovalRelatedEventsFromTag(userAddress: string, tagId: number): Observable<string[][]> {
+        return this.getSmartContract().pipe(
+            first(),
+            switchMap(contract => this._selectAllRemovedAddressesFromTag(contract, userAddress, tagId))
+        );
+    }
+
+    private _selectAllRemovedAddressesFromTag(contract, userAddress: string, tagId: number): Observable<string[][]> {
+        //const eventTaggedAddress = this._smartContractResolved.TaggedAddress({filter: { tagger: userAddress, tagId: tagId}});
+        const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: 0, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
+        console.log('eventsTaggedAddress :' + eventsTaggedAddress);
+        const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: 0, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
+        console.log('eventsRemovedTaggingAddress :' + eventsRemovedTaggingAddress);
+        //Working but takes a long time!!! Try to apply filter to getPastEvents! Not just the name of the past event!: tagger and tagId!
+        return combineLatest(
+            from(eventsTaggedAddress),
+            from(eventsRemovedTaggingAddress)
+        ).pipe(
+            first(), //Only the first combination of Tagged addresses and Removed Addresses matter!
+            map(([eventsTagged, eventsRemoved]) => {
+                console.log('eventsTaggedAddress.value :' + eventsTagged);
+                console.log('eventsRemoved.value :' + eventsRemoved);
+                return [eventsTagged as string[], eventsRemoved as string[]];
+            })
         );
     }
 

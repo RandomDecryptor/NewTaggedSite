@@ -2,8 +2,8 @@ import {Injectable} from '@angular/core';
 import {MainContractStore} from './main-contract.store';
 import {TagMainContractService} from "../../tagmaincontract";
 import {TagRemoveTaggingData} from "../../remove-tagging/tag-remove-tagging-data";
-import {catchError} from "rxjs/operators";
-import {of} from "rxjs";
+import {catchError, first, map, switchMap} from "rxjs/operators";
+import {Observable, of} from "rxjs";
 import * as fromAction from "../../tagmaincontract/tag-main-contract.actions.internal";
 import {NotificationService} from "../../notifications/state/notification.service";
 import {createNotification} from "../../notifications/state/notification.model";
@@ -34,5 +34,59 @@ export class MainContractService {
             }
         });
     }
+
+    /**
+     *
+     * Main Contract High Level Helper Methods that can get information from various events and services at the same time.
+     *
+     */
+    public selectAllRemovedAddressesFromTag(userAddress: string, tagId: number): Observable<string[]> {
+        return this.ethereumMainContractService.selectAllTaggingRemovalRelatedEventsFromTag(userAddress, tagId).pipe(
+            map(([eventsTagged, eventsRemoved]) => {
+                return this._processTaggingsForRemovalPrep(eventsTagged, eventsRemoved);
+            }),
+            catchError(error => {
+                console.log('ERROR selectAllRemovedAddressesFromTag: ' + error);
+                return of([]);
+            })
+        );
+    }
+
+    private _processTaggingsForRemovalPrep(taggings, taggingRemovals): string[] {
+        const ret = [];
+        if(taggings == null || taggingRemovals == null) {
+            console.error('_processTaggingsForRemovalPrep: One of taggings or tagging removals are null!');
+            return [];
+        }
+        var addresses = [],
+            taggingsMap = {},
+            unTaggingsMap = {};
+        //Filter the addresses that are finally tagged (the ones that were untagged remove):
+        taggings.forEach((elem, index) => {
+            if (!elem.removed && elem.blockNumber) {
+                taggingsMap[elem.args.tagged] = elem.blockNumber; //Will keep here the last block number in which this address was tagged
+            }
+        });
+        if(taggingRemovals.length > 0) {
+            taggingRemovals.forEach((elem, index) => {
+                if (!elem.removed && elem.blockNumber) {
+                    unTaggingsMap[elem.args.tagged] = elem.blockNumber; //Will keep here the last block number in which this address was tagged
+                }
+            });
+        }
+
+        var alreadyListed = {};
+        taggings.forEach((elem, index) => {
+            //Will allow untagging of those addresses, that have no untaggings until now, or which have been tagged again (having previously been untagged):
+            //And of course, we will not count those that have been already added to the combobox ("alreadyListed"):
+            if (!alreadyListed[elem.args.tagged] && (!unTaggingsMap[elem.args.tagged] || (taggingsMap[elem.args.tagged] > unTaggingsMap[elem.args.tagged])) ) {
+                //Add address to the list of addresses to be removed:
+                ret.push(elem.args.tagged);
+                alreadyListed[elem.args.tagged] = true;
+            }
+        });
+
+        return ret;
+    };
 
 }

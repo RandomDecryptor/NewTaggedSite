@@ -2,9 +2,9 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {TagRemoveTaggingData} from "../tag-remove-tagging-data";
 import {FormControl} from "@angular/forms";
 import {debounceTime, map, startWith, switchMap, tap} from "rxjs/operators";
-import {Observable, ReplaySubject} from "rxjs";
-import {MainContractHighLevelService} from "../../services/main-contract-high-level.service";
+import {BehaviorSubject, Observable, ReplaySubject} from "rxjs";
 import {MatOptionSelectionChange} from "@angular/material";
+import {MainContractService} from "../../tags/state/main-contract.service";
 
 @Component({
     selector: 'app-remove-tagging-panel',
@@ -13,7 +13,7 @@ import {MatOptionSelectionChange} from "@angular/material";
 })
 export class RemoveTaggingComponent implements OnInit {
     myControl = new FormControl();
-    addressOptions: ReplaySubject<string[]>;
+    addressOptions: BehaviorSubject<string[]>;
     filteredAddresses: Observable<string[]>;
 
     private _data: TagRemoveTaggingData;
@@ -24,8 +24,8 @@ export class RemoveTaggingComponent implements OnInit {
 
     static readonly debounceTimeRemoveTaggingButton = 500;
 
-    constructor(private contractHLService: MainContractHighLevelService) {
-        this.addressOptions = new ReplaySubject(1);
+    constructor(private newMainContractService: MainContractService) {
+        this.addressOptions = new BehaviorSubject([]);
     }
 
     get currentAddressToRemove(): string {
@@ -42,7 +42,7 @@ export class RemoveTaggingComponent implements OnInit {
         if(this._data) {
             //TODO:
             //...
-            this.contractHLService.selectAllRemovedAddressesFromTag(this._data.currentUserAddress, this._data.tag.tagId).subscribe(removableAddresses => {
+            this.newMainContractService.selectAllRemovedAddressesFromTag(this._data.currentUserAddress, this._data.tag.tagId).subscribe(removableAddresses => {
                 this.addressOptions.next(removableAddresses);
             });
         }
