@@ -35,6 +35,7 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './pages/home/home.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatGridListModule } from '@angular/material/grid-list';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {EthModule} from "./ethereum/eth.module";
 
 import {environment} from "../environments/environment";
@@ -106,6 +107,7 @@ if (environment.production) {
         MatGridListModule,
         MatButtonModule,
         MatTableModule,
+        MatSlideToggleModule,
         FlexLayoutModule,
         //MatSnackBarModule,
         OverlayModule,

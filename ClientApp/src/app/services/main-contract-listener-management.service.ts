@@ -9,6 +9,7 @@ import {AllTagsStore} from "../tags/state/all-tags.store";
 
 import Web3 from 'web3';
 import {AllTagsQuery} from "../tags/state/all-tags.query";
+import {MainContractStore} from "../tags/state/main-contract.store";
 
 interface EventListener {
     listener: any;
@@ -36,6 +37,7 @@ export class MainContractListenerManagementService {
                 private mainContractService: fromTagMainContract.TagMainContractService,
                 private allTagsStore: AllTagsStore,
                 private allTagsQuery: AllTagsQuery,
+                private mainContractStore: MainContractStore,
     ) {
         this._eventListeners = [];
     }
@@ -72,11 +74,18 @@ export class MainContractListenerManagementService {
         });
 
         /*
-            Catch Taggings of user owned tags
+            Catch Taggings of user owned tags (or taggings which the user did)
          */
         const eventTaggedAddress = this._createListenerTagggingAddress(tagIds);
 
         this._eventListeners.push(eventTaggedAddress);
+
+        /*
+            Catch Removal of Taggings of user owned tags (or removal of taggings which the user did)
+         */
+        const eventRemoveTaggedAddress = this._createListenerRemoveTagggingAddress(tagIds);
+
+        this._eventListeners.push(eventRemoveTaggedAddress);
 
     }
 
@@ -142,10 +151,15 @@ export class MainContractListenerManagementService {
         let eventListener = this._smartContractResolved.TaggedAddress({});
         let returnedListener = eventListener
             .on('data', event => {
+                let ownTags = false;
                 console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
                 console.log("This Data: " + event);
                 if(this._trackingOwnTagIds.findIndex(value => value === event.returnValues.tagId) >= 0) {
                     console.log(" ***************************** Interesting EVent TaggedAddress: " + event.returnValues.tagId);
+                    ownTags = true;
+                }
+                else if(this._trackingUserAddress === event.returnValues.tagger) {
+                    console.log(" ***** Interesting EVent TaggedAddress (User was tagger): " + event.returnValues.tagId);
                 }
                 else {
                     return;
@@ -155,9 +169,20 @@ export class MainContractListenerManagementService {
                     return;
                 }
                 else {
-                    //Do the code that needs to be done to process the event:
-                    console.log(`Taggings must be updated for ${event.returnValues.tagId}.`);
-                    this._refreshTaggings(event.returnValues.tagId);
+                    //Doesn't matter if it was own Tag that was used or Tagging that the user was the tagger, for both these cases,
+                    //we need to update mainContractStore with new tagging:
+                    this.mainContractStore.update({
+                        eventTaggedAddress: { tagId: event.returnValues.tagId, tagger: event.returnValues.tagger, tagged: event.returnValues.tagged }
+                    });
+
+                    if(ownTags) {
+                        //Do the code that needs to be done to process the event:
+                        console.log(`Taggings must be updated for ${event.returnValues.tagId}.`);
+                        this._refreshTaggings(event.returnValues.tagId);
+                    }
+                    else {
+                        //Taggings in which the user was the tagger:
+                    }
                 }
             })
             .on('changed', event => {
@@ -167,7 +192,7 @@ export class MainContractListenerManagementService {
                 console.log("Error: " + error);
             });
 
-        console.debug('** How many Event Awaiting: ' + returnedListener.eventNames() + ' for tags: ' + tagIds.length);
+        console.debug('** How many Event Awaiting (Tagging): ' + returnedListener.eventNames() + ' for tags: ' + tagIds.length);
 
         /* NOT POSSIBLE to remove listeners and apply again in Truffle! Still tries to check the old listener and when goes to the new one considers the event has already been processed (in the dedupe function)
         //TEsting removing and applying on the same eventListener:
@@ -263,6 +288,65 @@ export class MainContractListenerManagementService {
         eventTaggedAddress.tagIds = cloneArray(tagIds);
         return eventTaggedAddress;
          */
+    }
+
+    private _createListenerRemoveTagggingAddress(tagIds: number[]): EventListener {
+        if(tagIds) {
+            console.debug(`Creating remove tagging event listener for ${tagIds.length} tags.`);
+        }
+        let eventListener = this._smartContractResolved.TagRemovedFromAddress({});
+        let returnedListener = eventListener
+            .on('data', event => {
+                let ownTags = false;
+                console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
+                console.log("This Data: " + event);
+                if(this._trackingOwnTagIds.findIndex(value => value === event.returnValues.tagId) >= 0) {
+                    console.log(" ***************************** Interesting EVent TagRemovedFromAddress: " + event.returnValues.tagId);
+                    ownTags = true;
+                }
+                else if(this._trackingUserAddress === event.returnValues.tagger) {
+                    console.log(" ***** Interesting EVent TagRemovedFromAddress (User was tagger): " + event.returnValues.tagId);
+                }
+                else {
+                    return;
+                }
+                if(!event.blockNumber) {
+                    console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
+                    return;
+                }
+                else {
+                    //Doesn't matter if it was own Tag that was used or Removal of Tagging that the user was the tagger, for both these cases,
+                    //we need to update mainContractStore with new tagging:
+                    this.mainContractStore.update({
+                        eventRemovedTaggingAddress: { tagId: event.returnValues.tagId, tagger: event.returnValues.tagger, tagged: event.returnValues.tagged }
+                    });
+
+                    if(ownTags) {
+                        //Do the code that needs to be done to process the event:
+                        console.log(`Taggings must be updated for ${event.returnValues.tagId} (tagging removed).`);
+                        this._refreshTaggings(event.returnValues.tagId);
+                    }
+                    else {
+                        //Taggings in which the user was the tagger:
+                    }
+                }
+            })
+            .on('changed', event => {
+                console.log("Event was removed from blockchain: " + event);
+            })
+            .on('error', error => {
+                console.log("Error: " + error);
+            });
+
+        console.debug('** How many Event Awaiting (Remove tagging): ' + returnedListener.eventNames() + ' for tags: ' + tagIds.length);
+
+        const eventTaggedAddress = {
+            listener: eventListener,
+            returnedListener: returnedListener,
+            tagEventType: 'TagRemovedFromAddress',
+            tagIds: tagIds.slice() //Clone array
+        } as EventListener;
+        return eventTaggedAddress;
     }
 
     private _refreshTaggings(tagIdStr: string) {

@@ -101,29 +101,28 @@ export class EthereumMainContractService {
      * Main Contract High Level Helper Methods that can get information from various events and services at the same time.
      *
      */
-    public selectAllTaggingRemovalRelatedEventsFromTag(userAddress: string, tagId: number): Observable<string[][]> {
+    public selectHistoricAllTaggingRemovalRelatedEventsFromTag(userAddress: string, tagId: number): Observable<any[][]> {
         return this.getSmartContract().pipe(
             first(),
-            switchMap(contract => this._selectAllRemovedAddressesFromTag(contract, userAddress, tagId))
+            switchMap(contract => this._selectHistoricAllRemovedAddressesFromTag(contract, userAddress, tagId))
         );
     }
 
-    private _selectAllRemovedAddressesFromTag(contract, userAddress: string, tagId: number): Observable<string[][]> {
+    private _selectHistoricAllRemovedAddressesFromTag(contract, userAddress: string, tagId: number): Observable<any[][]> {
         //const eventTaggedAddress = this._smartContractResolved.TaggedAddress({filter: { tagger: userAddress, tagId: tagId}});
         const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: 0, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
         console.log('eventsTaggedAddress :' + eventsTaggedAddress);
         const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: 0, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
         console.log('eventsRemovedTaggingAddress :' + eventsRemovedTaggingAddress);
-        //Working but takes a long time!!! Try to apply filter to getPastEvents! Not just the name of the past event!: tagger and tagId!
         return combineLatest(
             from(eventsTaggedAddress),
             from(eventsRemovedTaggingAddress)
         ).pipe(
-            first(), //Only the first combination of Tagged addresses and Removed Addresses matter!
+            first(), //Only the first combination of Tagged addresses and Removed Addresses matter! (As it is a getPastEvents, should not matter much, as only one value from each would be available!)
             map(([eventsTagged, eventsRemoved]) => {
                 console.log('eventsTaggedAddress.value :' + eventsTagged);
                 console.log('eventsRemoved.value :' + eventsRemoved);
-                return [eventsTagged as string[], eventsRemoved as string[]];
+                return [eventsTagged as any[], eventsRemoved as any[]];
             })
         );
     }

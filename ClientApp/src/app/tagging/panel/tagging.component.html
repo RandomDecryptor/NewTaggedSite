@@ -2,7 +2,7 @@
 
 <form  fxLayout="row " fxLayoutAlign="center center">
     <div fxLayout="column " fxLayoutAlign="start start" fxLayoutGap="10px" class="example-form">
-        <h3 mat-subheader>Tagging an address with tag "{{data.tag.name}}"</h3>
+        <h3 mat-subheader>Tagging an address with tag "{{data.tag.name}}"<mat-slide-toggle checked="false">Remove tagging</mat-slide-toggle></h3>
         <mat-form-field class="example-full-width">
             <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
         </mat-form-field>

@@ -584,9 +584,17 @@ export class AppComponent {
         let estimation = false;
         if(this._currentTag && this._userAddress) {
             console.log(`Preparing removing of tagging of Tag "${this._currentTag.name}" for "0" Wei`);
+            //Change reference so it triggers change detection:
+            this._currentRemoveTaggingData = {
+                tag: this._currentTag,
+                addressToRemoveTag: '',
+                currentUserAddress: this._userAddress
+            };
+            /*
             this._currentRemoveTaggingData.tag = this._currentTag;
             this._currentRemoveTaggingData.addressToRemoveTag = ''; //Clean address to tag field
             this._currentRemoveTaggingData.currentUserAddress = this._userAddress;
+             */
             this._removeTaggingAvailable = true;
         }
     }

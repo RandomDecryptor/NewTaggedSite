@@ -1,10 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {TagRemoveTaggingData} from "../tag-remove-tagging-data";
 import {FormControl} from "@angular/forms";
-import {debounceTime, map, startWith, switchMap, tap} from "rxjs/operators";
-import {BehaviorSubject, Observable, ReplaySubject} from "rxjs";
+import {debounceTime, map, startWith, switchMap, tap, withLatestFrom} from "rxjs/operators";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {MatOptionSelectionChange} from "@angular/material";
 import {MainContractService} from "../../tags/state/main-contract.service";
+import {MainContractQuery} from "../../tags/state/main-contract.query";
 
 @Component({
     selector: 'app-remove-tagging-panel',
@@ -20,12 +21,21 @@ export class RemoveTaggingComponent implements OnInit {
 
     private _currentAddressToRemove: string;
 
+    private _oldTagId: number;
+
+    private _taggingEventsSubscriptions: Subscription;
+
     @Output() toRemoveTag: EventEmitter<TagRemoveTaggingData> = new EventEmitter();
 
     static readonly debounceTimeRemoveTaggingButton = 500;
 
-    constructor(private newMainContractService: MainContractService) {
+    constructor(
+        private newMainContractService: MainContractService,
+        private mainContractQuery: MainContractQuery) {
+
         this.addressOptions = new BehaviorSubject([]);
+        this._oldTagId = null;
+        this._taggingEventsSubscriptions = null;
     }
 
     get currentAddressToRemove(): string {
@@ -40,9 +50,14 @@ export class RemoveTaggingComponent implements OnInit {
     set data(value: TagRemoveTaggingData) {
         this._data = value;
         if(this._data) {
-            //TODO:
-            //...
-            this.newMainContractService.selectAllRemovedAddressesFromTag(this._data.currentUserAddress, this._data.tag.tagId).subscribe(removableAddresses => {
+            if(this._taggingEventsSubscriptions && this._data.tag.tagId !== this._oldTagId) {
+                //Release previous subscribed
+                this._taggingEventsSubscriptions.unsubscribe();
+                this._oldTagId = this._data.tag.tagId;
+                //Clean old values, while we retrieve the new values later:
+                this.addressOptions.next([]);
+            }
+            this._taggingEventsSubscriptions = this.newMainContractService.selectAllRemovedAddressesFromTag(this._data.currentUserAddress, this._data.tag.tagId).subscribe(removableAddresses => {
                 this.addressOptions.next(removableAddresses);
             });
         }
@@ -75,6 +90,27 @@ export class RemoveTaggingComponent implements OnInit {
                 } ), //Disable creation button again until the debounce time passes and we have finally a new value to use!
                 debounceTime(RemoveTaggingComponent.debounceTimeRemoveTaggingButton) //Wait 0.5 seconds to signal change in value
             ).subscribe(value => 1/*this._tagNameChanged(value)*/);
+
+        //Control Taggings and Removal of Taggings:
+        //Taggings events:
+        this.mainContractQuery.select(state => state.eventTaggedAddress).pipe(
+            withLatestFrom(this.addressOptions)
+        ).subscribe(([taggingEvent, currentAddressOptions]) => {
+            if(taggingEvent && currentAddressOptions) {
+                console.log('Will need to add tagging of: ' + taggingEvent.tagged);
+                currentAddressOptions.push(taggingEvent.tagged);
+                this.addressOptions.next(currentAddressOptions);
+            }
+        });
+        //Removal of tagging events:
+        this.mainContractQuery.select(state => state.eventRemovedTaggingAddress).pipe(
+            withLatestFrom(this.addressOptions)
+        ).subscribe(([removeTaggingEvent, currentAddressOptions]) => {
+            if(removeTaggingEvent && currentAddressOptions) {
+                console.log('Will need to add removal of tagging: ' + removeTaggingEvent.tagged);
+                this.addressOptions.next(currentAddressOptions.filter(value => value !== removeTaggingEvent.tagged));
+            }
+        });
 
     }
 

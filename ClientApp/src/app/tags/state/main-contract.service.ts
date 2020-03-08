@@ -1,10 +1,8 @@
 import {Injectable} from '@angular/core';
 import {MainContractStore} from './main-contract.store';
-import {TagMainContractService} from "../../tagmaincontract";
 import {TagRemoveTaggingData} from "../../remove-tagging/tag-remove-tagging-data";
-import {catchError, first, map, switchMap} from "rxjs/operators";
+import {catchError, map} from "rxjs/operators";
 import {Observable, of} from "rxjs";
-import * as fromAction from "../../tagmaincontract/tag-main-contract.actions.internal";
 import {NotificationService} from "../../notifications/state/notification.service";
 import {createNotification} from "../../notifications/state/notification.model";
 import {NotificationType} from "../../notifications/notifications";
@@ -41,7 +39,7 @@ export class MainContractService {
      *
      */
     public selectAllRemovedAddressesFromTag(userAddress: string, tagId: number): Observable<string[]> {
-        return this.ethereumMainContractService.selectAllTaggingRemovalRelatedEventsFromTag(userAddress, tagId).pipe(
+        return this.ethereumMainContractService.selectHistoricAllTaggingRemovalRelatedEventsFromTag(userAddress, tagId).pipe(
             map(([eventsTagged, eventsRemoved]) => {
                 return this._processTaggingsForRemovalPrep(eventsTagged, eventsRemoved);
             }),
