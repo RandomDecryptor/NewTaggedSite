@@ -1,25 +1,30 @@
-<mat-divider></mat-divider>
+<div *ngIf="!tagToggleCheckValue">
+    <mat-divider></mat-divider>
 
-<form  fxLayout="row " fxLayoutAlign="center center">
-    <div fxLayout="column " fxLayoutAlign="start start" fxLayoutGap="10px" class="example-form">
-        <h3 mat-subheader>Tagging an address with tag "{{data.tag.name}}"<mat-slide-toggle checked="false">Remove tagging</mat-slide-toggle></h3>
-        <mat-form-field class="example-full-width">
-            <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
-        </mat-form-field>
-        <mat-form-field class="">
-            <input type="text" id="tagCost" matInput *ngIf="!data.estimated; else estimated" placeholder="Tagging cost (Eth)" aria-label="Tagging cost" readonly [value]="data.taggingCost | weiToEther" />
-            <ng-template #estimated>
-                <div  fxLayout="row " fxLayoutAlign="start start">
-                    <input type="text" id="tagCost" matInput placeholder="Tagging cost (Eth)" aria-label="Tagging cost (Estimated)" readonly [value]="(data.taggingCost | weiToEther) + ' [Estimated]'" />
-                    <div title="This value is estimated. Please connect your wallet to see the correct value!"><a href="#" (click)="connectWallet()">C</a></div>
-                </div>
-            </ng-template>
-        </mat-form-field>
-        <mat-form-field class="example-full-width">
-            <input matInput id="addressToTag" name="addressToTag" [(ngModel)]="data.addressToTag" placeholder="Address to tag" aria-label="Address to tag"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
-        </mat-form-field>
-        <div *ngIf="data.addressToTag.length == 42" class="example-full-width bottom-margin" >
-            <button class="example-full-width" mat-raised-button type="button" (mouseup)="onTagging()" [innerHtml]="('Tag address \'' + (data.addressToTag | colorizeAddress) + '\'') | keepHtml"></button>
+    <form  fxLayout="row " fxLayoutAlign="center center">
+        <div fxLayout="column " fxLayoutAlign="start start" fxLayoutGap="10px" class="example-form">
+            <div fxLayout="row" fxLayoutAlign="space-between center" style="width: 100%;">
+                <h3 mat-subheader>Tagging an address with tag "{{data.tag.name}}"</h3>
+                <h3 *ngIf="hasRemoveTagToggleAvailable"><mat-slide-toggle [checked]="tagToggleCheckValue" (change)="changeRemoveTagToggle($event)" title="Remove tagging" aria-label="Remove tagging"></mat-slide-toggle></h3>
+            </div>
+            <mat-form-field class="example-full-width">
+                <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
+            </mat-form-field>
+            <mat-form-field class="">
+                <input type="text" id="tagCost" matInput *ngIf="!data.estimated; else estimated" placeholder="Tagging cost (Eth)" aria-label="Tagging cost" readonly [value]="data.taggingCost | weiToEther" />
+                <ng-template #estimated>
+                    <div  fxLayout="row " fxLayoutAlign="start start">
+                        <input type="text" id="tagCost" matInput placeholder="Tagging cost (Eth)" aria-label="Tagging cost (Estimated)" readonly [value]="(data.taggingCost | weiToEther) + ' [Estimated]'" />
+                        <div title="This value is estimated. Please connect your wallet to see the correct value!"><a href="#" (click)="connectWallet()">C</a></div>
+                    </div>
+                </ng-template>
+            </mat-form-field>
+            <mat-form-field class="example-full-width">
+                <input matInput id="addressToTag" name="addressToTag" [(ngModel)]="data.addressToTag" placeholder="Address to tag" aria-label="Address to tag"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
+            </mat-form-field>
+            <div *ngIf="data.addressToTag.length == 42" class="example-full-width bottom-margin" >
+                <button class="example-full-width" mat-raised-button type="button" (mouseup)="onTagging()" [innerHtml]="('Tag address \'' + (data.addressToTag | colorizeAddress) + '\'') | keepHtml"></button>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>

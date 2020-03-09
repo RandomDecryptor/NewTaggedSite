@@ -106,6 +106,26 @@ export class AppComponent {
 
     private _overlayConnectionStatusRef: OverlayRef = null;
 
+    private _tagOrRemoveTagToggle: boolean;
+
+    private _removeTagToggleAvailable: boolean;
+
+    get tagOrRemoveTagToggle(): boolean {
+        return this._tagOrRemoveTagToggle;
+    }
+
+    set tagOrRemoveTagToggle(value: boolean) {
+        this._tagOrRemoveTagToggle = value;
+    }
+
+    get removeTagToggleAvailable(): boolean {
+        return this._removeTagToggleAvailable;
+    }
+
+    set removeTagToggleAvailable(value: boolean) {
+        this._removeTagToggleAvailable = value;
+    }
+
     get creationAvailable() {
         return this._creationAvailable;
     }
@@ -520,6 +540,8 @@ export class AppComponent {
         console.log('Options Selected: ' + optionSelected.name);
         //An already existing tag was selected:
         this._currentTag = optionSelected;
+        this._tagOrRemoveTagToggle = false; //Reset to show tagging first!
+        this._removeTagToggleAvailable = false; //Reset to know if later we display this or not
         this.prepareTagging();
         this.prepareRemoveTagging();
     }
@@ -709,5 +731,17 @@ export class AppComponent {
             //this._currentRemoveTaggingData = { addressToRemoveTag: null, tag: null };
         }
 
+    }
+
+    taggingToggleFired(value: boolean) {
+        this._tagOrRemoveTagToggle = value;
+    }
+
+    removeTaggingToggleFired(value: boolean) {
+        this._tagOrRemoveTagToggle = value;
+    }
+
+    hasRemovableAddressesEvent(hasAddresses: boolean) {
+        this._removeTagToggleAvailable = hasAddresses;
     }
 }

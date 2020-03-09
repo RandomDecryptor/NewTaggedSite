@@ -1,9 +1,9 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TagRemoveTaggingData} from "../tag-remove-tagging-data";
 import {FormControl} from "@angular/forms";
-import {debounceTime, map, startWith, switchMap, tap, withLatestFrom} from "rxjs/operators";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
-import {MatOptionSelectionChange} from "@angular/material";
+import {debounceTime, filter, map, startWith, switchMap, takeUntil, tap, withLatestFrom} from "rxjs/operators";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
+import {MatOptionSelectionChange, MatSlideToggleChange} from "@angular/material";
 import {MainContractService} from "../../tags/state/main-contract.service";
 import {MainContractQuery} from "../../tags/state/main-contract.query";
 
@@ -12,12 +12,14 @@ import {MainContractQuery} from "../../tags/state/main-contract.query";
     templateUrl: './remove-tagging.component.html',
     styleUrls: ['./remove-tagging.component.scss']
 })
-export class RemoveTaggingComponent implements OnInit {
+export class RemoveTaggingComponent implements OnInit, OnDestroy {
     myControl = new FormControl();
     addressOptions: BehaviorSubject<string[]>;
     filteredAddresses: Observable<string[]>;
 
     private _data: TagRemoveTaggingData;
+
+    @Input() tagToggleCheckValue: boolean;
 
     private _currentAddressToRemove: string;
 
@@ -26,6 +28,12 @@ export class RemoveTaggingComponent implements OnInit {
     private _taggingEventsSubscriptions: Subscription;
 
     @Output() toRemoveTag: EventEmitter<TagRemoveTaggingData> = new EventEmitter();
+
+    @Output() removeTaggingToggleFired: EventEmitter<boolean> = new EventEmitter();
+
+    @Output() hasRemovableAddresses: EventEmitter<boolean> = new EventEmitter();
+
+    private _terminateComp: Subject<void>;
 
     static readonly debounceTimeRemoveTaggingButton = 500;
 
@@ -36,6 +44,8 @@ export class RemoveTaggingComponent implements OnInit {
         this.addressOptions = new BehaviorSubject([]);
         this._oldTagId = null;
         this._taggingEventsSubscriptions = null;
+        this.tagToggleCheckValue = true;
+        this._terminateComp = new Subject();
     }
 
     get currentAddressToRemove(): string {
@@ -66,6 +76,7 @@ export class RemoveTaggingComponent implements OnInit {
     ngOnInit(): void {
         this.filteredAddresses = this.myControl.valueChanges
             .pipe(
+                takeUntil(this._terminateComp),
                 startWith(''),
                 map(value => typeof value === 'string' ? value : value.name), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
                 //map(value => this._filter(value))
@@ -74,6 +85,7 @@ export class RemoveTaggingComponent implements OnInit {
 
         this.myControl.valueChanges
             .pipe(
+                takeUntil(this._terminateComp),
                 startWith(''),
                 tap(value => {
                     if(typeof value === 'string') {
@@ -94,6 +106,7 @@ export class RemoveTaggingComponent implements OnInit {
         //Control Taggings and Removal of Taggings:
         //Taggings events:
         this.mainContractQuery.select(state => state.eventTaggedAddress).pipe(
+            takeUntil(this._terminateComp),
             withLatestFrom(this.addressOptions)
         ).subscribe(([taggingEvent, currentAddressOptions]) => {
             if(taggingEvent && currentAddressOptions) {
@@ -104,6 +117,7 @@ export class RemoveTaggingComponent implements OnInit {
         });
         //Removal of tagging events:
         this.mainContractQuery.select(state => state.eventRemovedTaggingAddress).pipe(
+            takeUntil(this._terminateComp),
             withLatestFrom(this.addressOptions)
         ).subscribe(([removeTaggingEvent, currentAddressOptions]) => {
             if(removeTaggingEvent && currentAddressOptions) {
@@ -112,6 +126,20 @@ export class RemoveTaggingComponent implements OnInit {
             }
         });
 
+        this.addressOptions.pipe(
+            takeUntil(this._terminateComp),
+            filter(value => !!value) //Filter null values
+        ).subscribe(addresses => {
+            let hasValues = false;
+            if(addresses.length > 0) {
+                hasValues = true;
+            }
+            this.hasRemovableAddresses.emit(hasValues);
+        })
+    }
+
+    ngOnDestroy(): void {
+        this._terminateComp.unsubscribe();
     }
 
     onRemoveTagging(): void {
@@ -150,6 +178,11 @@ export class RemoveTaggingComponent implements OnInit {
             //this._currentAddressToRemove = null;
         }
 
+    }
+
+    changeTagToggle(event: MatSlideToggleChange) {
+        this.tagToggleCheckValue = !this.tagToggleCheckValue;
+        this.removeTaggingToggleFired.emit(this.tagToggleCheckValue);
     }
 
 }

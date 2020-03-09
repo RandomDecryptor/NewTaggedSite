@@ -1,9 +1,12 @@
-<div *ngIf="(addressOptions | async).length > 0">
+<div *ngIf="tagToggleCheckValue && ((addressOptions | async).length > 0)">
     <mat-divider></mat-divider>
 
     <form  fxLayout="row " fxLayoutAlign="center center">
         <div fxLayout="column " fxLayoutAlign="start start" fxLayoutGap="10px" class="example-form">
-            <h3 mat-subheader>Remove tagging "{{data.tag.name}}" from an address</h3>
+            <div fxLayout="row" fxLayoutAlign="space-between center" style="width: 100%;">
+                <h3 mat-subheader>Remove tagging "{{data.tag.name}}" from an address</h3>
+                <h3 ><mat-slide-toggle [checked]="tagToggleCheckValue" title="Tag address" (change)="changeTagToggle($event)" aria-label="Tag address"></mat-slide-toggle></h3>
+            </div>
             <mat-form-field class="example-full-width">
                 <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
             </mat-form-field>
