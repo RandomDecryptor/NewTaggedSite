@@ -733,14 +733,6 @@ export class AppComponent {
 
     }
 
-    taggingToggleFired(value: boolean) {
-        this._tagOrRemoveTagToggle = value;
-    }
-
-    removeTaggingToggleFired(value: boolean) {
-        this._tagOrRemoveTagToggle = value;
-    }
-
     hasRemovableAddressesEvent(hasAddresses: boolean) {
         this._removeTagToggleAvailable = hasAddresses;
     }

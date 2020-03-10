@@ -29,9 +29,9 @@
 
 </mat-grid-list>
 
-<app-tagging-panel [data]="currentTaggingData" [hasRemoveTagToggleAvailable]="removeTagToggleAvailable" (toTag)="onTagging()" (toConnectWallet)="onTaggingConnectWallet()" [tagToggleCheckValue]="tagOrRemoveTagToggle" (taggingToggleFired)="taggingToggleFired($event)" *ngIf="taggingAvailable"></app-tagging-panel>
+<app-tagging-panel [data]="currentTaggingData" [hasRemoveTagToggleAvailable]="removeTagToggleAvailable" (toTag)="onTagging()" (toConnectWallet)="onTaggingConnectWallet()" [(tagToggleCheckValue)]="tagOrRemoveTagToggle" *ngIf="taggingAvailable"></app-tagging-panel>
 
-<app-remove-tagging-panel [data]="currentRemoveTaggingData" (toRemoveTag)="onRemoveTagging()" [tagToggleCheckValue]="tagOrRemoveTagToggle" (removeTaggingToggleFired)="removeTaggingToggleFired($event)" (hasRemovableAddresses)="hasRemovableAddressesEvent($event)" *ngIf="removeTaggingAvailable"></app-remove-tagging-panel>
+<app-remove-tagging-panel [data]="currentRemoveTaggingData" (toRemoveTag)="onRemoveTagging()" [(tagToggleCheckValue)]="tagOrRemoveTagToggle" (hasRemovableAddresses)="hasRemovableAddressesEvent($event)" *ngIf="removeTaggingAvailable"></app-remove-tagging-panel>
 
 <br/><br/><br/><br/>
 

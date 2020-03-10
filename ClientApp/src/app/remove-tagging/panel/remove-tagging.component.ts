@@ -19,7 +19,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
 
     private _data: TagRemoveTaggingData;
 
-    @Input() tagToggleCheckValue: boolean;
+    private _tagToggleCheckValue: boolean;
 
     private _currentAddressToRemove: string;
 
@@ -29,7 +29,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
 
     @Output() toRemoveTag: EventEmitter<TagRemoveTaggingData> = new EventEmitter();
 
-    @Output() removeTaggingToggleFired: EventEmitter<boolean> = new EventEmitter();
+    @Output() tagToggleCheckValueChange: EventEmitter<boolean> = new EventEmitter();
 
     @Output() hasRemovableAddresses: EventEmitter<boolean> = new EventEmitter();
 
@@ -180,9 +180,18 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
 
     }
 
+    get tagToggleCheckValue(): boolean {
+        return this._tagToggleCheckValue;
+    }
+
+    @Input()
+    set tagToggleCheckValue(value : boolean) {
+        this._tagToggleCheckValue = value;
+        this.tagToggleCheckValueChange.emit(value);
+    }
+
     changeTagToggle(event: MatSlideToggleChange) {
         this.tagToggleCheckValue = !this.tagToggleCheckValue;
-        this.removeTaggingToggleFired.emit(this.tagToggleCheckValue);
     }
 
 }

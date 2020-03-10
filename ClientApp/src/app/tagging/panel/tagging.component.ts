@@ -11,18 +11,18 @@ export class TaggingComponent {
 
     @Input() data: TagTaggingData;
 
-    @Input() tagToggleCheckValue: boolean;
+    private _tagToggleCheckValue: boolean;
 
     @Output() toTag: EventEmitter<TagTaggingData> = new EventEmitter();
 
     @Output() toConnectWallet: EventEmitter<void> = new EventEmitter();
 
-    @Output() taggingToggleFired: EventEmitter<boolean> = new EventEmitter();
+    @Output() tagToggleCheckValueChange: EventEmitter<boolean> = new EventEmitter();
 
     @Input() hasRemoveTagToggleAvailable: boolean;
 
     constructor() {
-        this.tagToggleCheckValue = false;
+        this._tagToggleCheckValue = false;
         this.hasRemoveTagToggleAvailable = false;
     }
 
@@ -34,9 +34,18 @@ export class TaggingComponent {
         this.toConnectWallet.emit();
     }
 
+    get tagToggleCheckValue(): boolean {
+        return this._tagToggleCheckValue;
+    }
+
+    @Input()
+    set tagToggleCheckValue(value : boolean) {
+        this._tagToggleCheckValue = value;
+        this.tagToggleCheckValueChange.emit(value);
+    }
+
     changeRemoveTagToggle(event: MatSlideToggleChange) {
         this.tagToggleCheckValue = !this.tagToggleCheckValue;
-        this.taggingToggleFired.emit(this.tagToggleCheckValue);
     }
 
 }
