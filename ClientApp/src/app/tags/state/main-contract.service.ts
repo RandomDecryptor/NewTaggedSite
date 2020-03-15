@@ -8,6 +8,8 @@ import {createNotification} from "../../notifications/state/notification.model";
 import {NotificationType} from "../../notifications/notifications";
 import {EthereumMainContractService} from "../ethereum/ethereum.main-contract.service";
 import {Tag} from "../tags.model";
+import {AllTagsService} from "./all-tags.service";
+import {AllTagsQuery} from "./all-tags.query";
 
 @Injectable({
     providedIn: 'root'
@@ -16,6 +18,8 @@ export class MainContractService {
 
     constructor(private mainContractStore: MainContractStore,
                 private ethereumMainContractService: EthereumMainContractService,
+                private allTagsQuery: AllTagsQuery,
+                private allTagsService: AllTagsService,
                 private notificationService: NotificationService) {
     }
 
@@ -88,13 +92,15 @@ export class MainContractService {
         return ret;
     };
 
-    retrieveFullInfoTag(tag: Tag) {
+    retrieveFullInfoTag(tagId: number) {
+        const tag: Tag = this.allTagsQuery.getEntity(tagId);
         if(!tag.name) {
             //Missing name: retrieve it:
             this.ethereumMainContractService.retrieveTagName(tag.contractAddress, tag.tagId).pipe(
                 first()
             ).subscribe(name => {
-                tag.name = name;
+                //tag.name = name;
+                this.allTagsService.update(tag.tagId, {name: name});
             });
         }
         if(!tag.symbol) {
@@ -102,7 +108,8 @@ export class MainContractService {
             this.ethereumMainContractService.retrieveTagSymbol(tag.contractAddress, tag.tagId).pipe(
                 first()
             ).subscribe(symbol => {
-                tag.symbol = symbol;
+                //tag.symbol = symbol;
+                this.allTagsService.update(tag.tagId, {symbol: symbol});
             });
         }
     }

@@ -1,9 +1,12 @@
 import {Component, ElementRef, Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA, MatDialog} from '@angular/material/dialog';
-import {TagTransferData} from "../tag-transfer-data";
+import {TagTransferData, TagTransferDataReq} from "../tag-transfer-data";
 import {Tag} from "../../tags/tags.model";
 import {ExtraTagInfoComponent} from "./extra-tag-info/extra-tag-info.component";
 import {MainContractService} from "../../tags/state/main-contract.service";
+import {Observable} from "rxjs";
+import {AllTagsQuery} from "../../tags/state/all-tags.query";
+import {first} from "rxjs/operators";
 
 @Component({
     selector: 'app-tag-transfer-dialog',
@@ -12,21 +15,30 @@ import {MainContractService} from "../../tags/state/main-contract.service";
 })
 export class TagTransferDialogComponent {
 
-    public data: TagTransferData;
+    public _dataReq: TagTransferDataReq;
 
-    private _extraInfoDialog: MatDialogRef<ExtraTagInfoComponent, Tag>;
+    public tag: Observable<Tag>;
+
+    private _extraInfoDialog: MatDialogRef<ExtraTagInfoComponent, any>;
 
     constructor(public dialogRef: MatDialogRef<TagTransferDialogComponent>,
                 private mainContractService: MainContractService,
+                private allTagsQuery: AllTagsQuery,
                 private _dialogService: MatDialog,
                 private _elementRef: ElementRef,
-                @Inject(MAT_DIALOG_DATA) _data: TagTransferData,
+                @Inject(MAT_DIALOG_DATA) public data: TagTransferData,
     ) {
-        this.data = {
-            newOwnerAddress: _data.newOwnerAddress,
-            tagTransferCost: _data.tagTransferCost,
-            tag: {..._data.tag} //Clone Tag
+        this._dataReq = {
+            tagId : this.data.tag.tagId,
+            tagTransferCost: data.tagTransferCost,
+            newOwnerAddress: null
         };
+        this.tag = allTagsQuery.selectEntity(this.data.tag.tagId);
+        /*
+        this.tag.subscribe(value => {
+            console.debug('TAG VALUE: Name: ' + value.name + ' / Symbol: ' + value.symbol + ' / Contract Address: ' + value.contractAddress);
+        });
+         */
         this._extraInfoDialog = null;
         this.dialogRef.beforeClosed().subscribe(() => {
             if(this._extraInfoDialog) {
@@ -34,6 +46,10 @@ export class TagTransferDialogComponent {
                 this._extraInfoDialog = null;
             }
         });
+    }
+
+    get dataReq(): TagTransferDataReq {
+        return this._dataReq;
     }
 
     onNoClick(): void {
@@ -49,7 +65,7 @@ export class TagTransferDialogComponent {
 
         const rect = this._elementRef.nativeElement.getBoundingClientRect();
         //Call service to obtain extra information for tag if needed:
-        this.mainContractService.retrieveFullInfoTag(this.data.tag);
+        this.mainContractService.retrieveFullInfoTag(this.data.tag.tagId);
         //Open dialog with extra information:
         // close old dialog if opened already:
         if(this._extraInfoDialog) {
@@ -62,7 +78,7 @@ export class TagTransferDialogComponent {
 
                 position: { top: `${rect.top + 50}px`, left: `${rect.right + 5}px` },
                 width: '440px',
-                data: this.data.tag
+                data: this.tag
             });
             this._extraInfoDialog.afterClosed().subscribe(() => {
                 console.debug('TagTransferDialogComponent: MoreInfoDialog Closed!');

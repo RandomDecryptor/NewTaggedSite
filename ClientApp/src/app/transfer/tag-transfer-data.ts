@@ -6,3 +6,9 @@ export interface TagTransferData {
     newOwnerAddress?: string;
 }
 
+export interface TagTransferDataReq {
+    tagId: number;
+    tagTransferCost: string;
+    newOwnerAddress: string;
+}
+

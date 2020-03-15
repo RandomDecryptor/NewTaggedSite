@@ -3,10 +3,10 @@ import {Tag} from "../../tags/tags.model";
 import {MatDialog, MatTable, MatTableDataSource} from "@angular/material";
 import {Store} from "@ngrx/store";
 import * as fromTagMainContract from "../../tagmaincontract";
-import {debounceTime, filter, tap} from "rxjs/operators";
+import {debounceTime} from "rxjs/operators";
 import {Observable, of} from "rxjs";
 import {TagTransferDialogComponent} from "../../transfer/dialog/tag-transfer-dialog.component";
-import {TagTransferData} from "../../transfer/tag-transfer-data";
+import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
 
 @Component({
     selector: 'app-your-tags',
@@ -88,12 +88,11 @@ export class YourTagsComponent implements OnInit {
                 tagTransferCost: value
             }
         });
-        dialogRef.afterClosed().subscribe((result: TagTransferData) => {
+        dialogRef.afterClosed().subscribe((result: TagTransferDataReq) => {
             if (result) {
                 //The dialog was closed as a OK!
                 //Continue processing as expected:
-                console.log(`Tag name to transfer: ${result.tag.name}`);
-                console.log(`Symbol name to transfer: ${result.tag.symbol}`);
+                console.log(`Tag Id to transfer: ${result.tagId}`);
                 console.log(`Cost to transfer: ${result.tagTransferCost}`);
                 console.log(`New owner address: ${result.newOwnerAddress}`);
                 //Launch event to create tag in ethereum network:

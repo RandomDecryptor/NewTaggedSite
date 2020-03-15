@@ -1,6 +1,7 @@
 import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material";
 import {Tag} from "../../../tags/tags.model";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-extra-tag-info',
@@ -10,7 +11,7 @@ import {Tag} from "../../../tags/tags.model";
 export class ExtraTagInfoComponent {
 
     constructor(public dialogRef: MatDialogRef<ExtraTagInfoComponent>,
-                @Inject(MAT_DIALOG_DATA) public data: Tag) {
+                @Inject(MAT_DIALOG_DATA) public data: Observable<Tag>) {
     }
 
     onNoClick(): void {
