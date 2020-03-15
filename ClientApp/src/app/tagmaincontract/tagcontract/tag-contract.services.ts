@@ -75,11 +75,28 @@ export class TagContractService {
         return ret;
     }
 
+    private cleanUpTagSymbol(symbolName: string): string {
+        //Proccessing symbolName:
+        let ret = symbolName;
+
+        //Clean up strange characters (if they exist):
+        ret = this.getEscapedHtml(ret);
+        return ret;
+    }
+
     public getName(tagContractAddress: string): Observable<string> {
         return this.getSmartContract(tagContractAddress).pipe(
             switchMap((instance: any) => from<string>(instance.name())),
             map((tagName: string) => this.cleanUpTagName(tagName, tagContractAddress)),
             tap(tagName => console.log("Tag name: " + tagName))
+        );
+    }
+
+    public getSymbol(tagContractAddress: string): Observable<string> {
+        return this.getSmartContract(tagContractAddress).pipe(
+            switchMap((instance: any) => from<string>(instance.symbol())),
+            map((symbolName: string) => this.cleanUpTagSymbol(symbolName)),
+            tap(symbolName => console.log("Symbol name: " + symbolName))
         );
     }
 

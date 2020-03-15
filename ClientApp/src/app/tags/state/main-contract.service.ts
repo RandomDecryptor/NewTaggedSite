@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
 import {MainContractStore} from './main-contract.store';
 import {TagRemoveTaggingData} from "../../remove-tagging/tag-remove-tagging-data";
-import {catchError, map} from "rxjs/operators";
+import {catchError, first, map} from "rxjs/operators";
 import {Observable, of} from "rxjs";
 import {NotificationService} from "../../notifications/state/notification.service";
 import {createNotification} from "../../notifications/state/notification.model";
 import {NotificationType} from "../../notifications/notifications";
 import {EthereumMainContractService} from "../ethereum/ethereum.main-contract.service";
+import {Tag} from "../tags.model";
 
 @Injectable({
     providedIn: 'root'
@@ -18,7 +19,7 @@ export class MainContractService {
                 private notificationService: NotificationService) {
     }
 
-    removeTagging(removeTaggingData: TagRemoveTaggingData) {
+    public removeTagging(removeTaggingData: TagRemoveTaggingData) {
         this.ethereumMainContractService.removeTagging(removeTaggingData.tag.tagId, removeTaggingData.addressToRemoveTag).pipe(
             catchError(err => {
                 const msgExtracted = err['message'] ? err['message'] : err;
@@ -87,4 +88,22 @@ export class MainContractService {
         return ret;
     };
 
+    retrieveFullInfoTag(tag: Tag) {
+        if(!tag.name) {
+            //Missing name: retrieve it:
+            this.ethereumMainContractService.retrieveTagName(tag.contractAddress, tag.tagId).pipe(
+                first()
+            ).subscribe(name => {
+                tag.name = name;
+            });
+        }
+        if(!tag.symbol) {
+            //Missing symbol: retrieve it:
+            this.ethereumMainContractService.retrieveTagSymbol(tag.contractAddress, tag.tagId).pipe(
+                first()
+            ).subscribe(symbol => {
+                tag.symbol = symbol;
+            });
+        }
+    }
 }

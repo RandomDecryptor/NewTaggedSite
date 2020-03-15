@@ -1,0 +1,19 @@
+<h1 mat-dialog-title class="dialog-title">Transfer tag '{{data.tag.name}}' to new owner</h1>
+<div mat-dialog-content>
+    <div fxLayout="row " fxLayoutAlign="start center">
+        <mat-form-field placeholder="Tag name" class="transfer-field">
+            <input matInput readonly [ngModel]="data.tag.name" >
+        </mat-form-field>
+        <a href="#MoreInfo" (click)="onClickMoreInfo()">I</a>
+    </div>
+    <mat-form-field class="transfer-field">
+        <input matInput readonly placeholder="Cost to transfer tag (Eth)" value="{{ data.tagTransferCost | weiToEther }}">
+    </mat-form-field>
+    <mat-form-field class="transfer-field">
+        <input matInput name="newOwnerAddress" [(ngModel)]="data.newOwnerAddress" placeholder="New owner wallet address" aria-label="New owner wallet address"  maxlength="42" appRestrictTo="[a-fxA-FX0-9]" >
+    </mat-form-field>
+</div>
+<div mat-dialog-actions fxLayout="row " fxLayoutAlign="center center" >
+    <button mat-button (click)="onNoClick()">Cancel</button>
+    <button mat-button [disabled]="!data.newOwnerAddress || data.newOwnerAddress.length !== 42" [mat-dialog-close]="data" cdkFocusInitial>Transfer</button>
+</div>

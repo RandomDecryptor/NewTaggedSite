@@ -38,6 +38,8 @@
 
 <app-your-tags [tags]="ownTags$" *ngIf="(ownTags$ | async).length > 0"></app-your-tags>
 
+<br/><br/><br/><br/>
+
 <button mat-raised-button (click)="trackTaggingInTag2()" >Test Event Listeners</button>
 <button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
 <button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>

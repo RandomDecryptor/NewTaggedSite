@@ -63,6 +63,8 @@ import { enableAkitaProdMode } from '@datorama/akita';
 import {AkitaNgDevtools} from '@datorama/akita-ngdevtools';
 import {RemoveTaggingComponent} from "./remove-tagging/panel/remove-tagging.component";
 import {TaggedContractAddress} from "./services/tokens";
+import {TagTransferDialogComponent} from "./transfer/dialog/tag-transfer-dialog.component";
+import { ExtraTagInfoComponent } from './transfer/dialog/extra-tag-info/extra-tag-info.component';
 
 if (environment.production) {
     enableAkitaProdMode();
@@ -76,6 +78,8 @@ if (environment.production) {
     ColorizeAddressPipe,
     EscapeHtmlPipe,
     TagCreationDialogComponent,
+    TagTransferDialogComponent,
+    ExtraTagInfoComponent,
     WeiToEtherPipe,
     TaggingComponent,
     ConnectionStatusComponent,
@@ -88,6 +92,8 @@ if (environment.production) {
   ],
     entryComponents: [
         TagCreationDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!
+        TagTransferDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!
+        ExtraTagInfoComponent, //Dialog component will be instantiated dynamically by the Dialog service!
         ConnectionStatusComponent, //Overlay component will be instantiated dynamically by the Overlay service!
         OneConnectionStatusComponentComponent, //Overlay component will be instantiated dynamically by the Overlay service!
         SmallInfoOverlayComponent, //Overlay component will be instantiated dynamically by the Overlay service!

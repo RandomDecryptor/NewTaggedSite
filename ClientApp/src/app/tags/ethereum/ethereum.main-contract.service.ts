@@ -7,6 +7,7 @@ import {TruffleContract} from 'truffle-contract';
 import {combineLatest, from, Observable, of} from "rxjs";
 import {catchError, first, map, switchMap, tap} from "rxjs/operators";
 import {EthereumMainContractException} from "./exceptions";
+import {TagContractService} from "../../tagmaincontract/tagcontract/tag-contract.services";
 
 @Injectable({
     providedIn: 'root'
@@ -24,6 +25,7 @@ export class EthereumMainContractService {
 
     constructor(@Inject(WEB3) private web3: Web3,
                 @Inject(SmartContract) private smartContract: TruffleContract,
+                private tagContractService: TagContractService,
                 @Inject(TaggedContractAddress) smartContractAddress: string) {
         this._contractAddress = smartContractAddress;
     }
@@ -125,6 +127,14 @@ export class EthereumMainContractService {
                 return [eventsTagged as any[], eventsRemoved as any[]];
             })
         );
+    }
+
+    retrieveTagName(tagContractAddress: string, tagId: number): Observable<string> {
+        return this.tagContractService.getName(tagContractAddress);
+    }
+
+    retrieveTagSymbol(tagContractAddress: string, tagId: number): Observable<string> {
+        return this.tagContractService.getSymbol(tagContractAddress);
     }
 
 }
