@@ -29,7 +29,7 @@ export class TagTransferDialogComponent {
                 @Inject(MAT_DIALOG_DATA) public data: TagTransferData,
     ) {
         this._dataReq = {
-            tagId : this.data.tag.tagId,
+            tag : this.data.tag,
             tagTransferCost: data.tagTransferCost,
             newOwnerAddress: null
         };

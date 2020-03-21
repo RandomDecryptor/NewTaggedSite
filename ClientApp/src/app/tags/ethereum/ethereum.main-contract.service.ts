@@ -137,4 +137,15 @@ export class EthereumMainContractService {
         return this.tagContractService.getSymbol(tagContractAddress);
     }
 
+    transferTagOwnership(tagId: number, newOwnerAddress: string, tagTransferCost: string): Observable<boolean> {
+        const gasLimit = 6000000; //TODO: Decrease gas limit ! Doesn't need to be so high!
+        return this.getSmartContractConnected().pipe(
+            switchMap((instance: any) => {
+                //Can't use this.web3.eth.defaultAccount the first time! Not working for Remove Tagging, have no idea why! in the TaggingAddress worked without problems!
+                return from<boolean>(instance.transferTagRegistrationByTagId(tagId, newOwnerAddress, EthereumMainContractService.ZERO_ADDRESS, {from: this._defaultAccount, value: tagTransferCost,  gas: gasLimit }));
+            }),
+            //On next methods, it's the result of final creation, with the block and event results of a successful creation:
+            tap(value => console.log("Transfer Tag Ownership return: " + value)), //Should be True / False! Or Any??? Result of Transaction! TODO: Check and update accordingly!
+        );
+    }
 }

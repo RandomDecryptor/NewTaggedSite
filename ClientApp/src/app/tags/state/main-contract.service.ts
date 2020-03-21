@@ -10,6 +10,7 @@ import {EthereumMainContractService} from "../ethereum/ethereum.main-contract.se
 import {Tag} from "../tags.model";
 import {AllTagsService} from "./all-tags.service";
 import {AllTagsQuery} from "./all-tags.query";
+import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
 
 @Injectable({
     providedIn: 'root'
@@ -112,5 +113,20 @@ export class MainContractService {
                 this.allTagsService.update(tag.tagId, {symbol: symbol});
             });
         }
+    }
+
+    transferTagOwnership(transferTagDataReq: TagTransferDataReq) {
+        this.ethereumMainContractService.transferTagOwnership(transferTagDataReq.tag.tagId, transferTagDataReq.newOwnerAddress, transferTagDataReq.tagTransferCost).pipe(
+            catchError(err => {
+                const msgExtracted = err['message'] ? err['message'] : err;
+                this.notificationService.add(createNotification({ type: NotificationType.ERR, msg : `Error transferring tag '${transferTagDataReq.tag.name}' to address '${transferTagDataReq.newOwnerAddress}': ${msgExtracted}` } ));
+                return of(null);
+            })
+        ).subscribe(transferTagOwnershipResult => {
+            if(transferTagOwnershipResult) {
+                console.log(`MainContractService: Transfer Tag Ownership result: ${transferTagOwnershipResult}`);
+                this.mainContractStore.update({ transferTagOwnership : { data: transferTagDataReq, result: transferTagOwnershipResult} } );
+            }
+        });
     }
 }

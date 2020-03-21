@@ -7,6 +7,7 @@ import {debounceTime, filter} from "rxjs/operators";
 import {Observable, of} from "rxjs";
 import {TagTransferDialogComponent} from "../../transfer/dialog/tag-transfer-dialog.component";
 import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
+import {MainContractService} from "../../tags/state/main-contract.service";
 
 @Component({
     selector: 'app-your-tags',
@@ -26,7 +27,8 @@ export class YourTagsComponent implements OnInit {
 
     private tagTransferCost: string;
 
-    constructor(private taggedContractStore: Store<fromTagMainContract.AppState>,
+    constructor(private taggedContractStore: Store<fromTagMainContract.AppState>, //NgRx
+                private mainContractService: MainContractService, //Akita
                 private _dialogService: MatDialog,
                 private cd: ChangeDetectorRef) {
         this._tags = of([]);
@@ -103,34 +105,18 @@ export class YourTagsComponent implements OnInit {
             if (result) {
                 //The dialog was closed as a OK!
                 //Continue processing as expected:
-                console.log(`Tag Id to transfer: ${result.tagId}`);
+                console.log(`Tag Id to transfer: ${result.tag.tagId}`);
                 console.log(`Cost to transfer: ${result.tagTransferCost}`);
                 console.log(`New owner address: ${result.newOwnerAddress}`);
-                //Launch event to create tag in ethereum network:
-                //We will have to initialize also athe Ethereum network if not enabled yet:
-                //this.ethStore.dispatch(new fromTagMainContract.CreateTag(result));
-                //this.ethStore.dispatch(batchActions([new fromActionEth.InitEth(), new fromAction.CreateTagInt(result)]));
-                //!! Humm not interesting! Don't just want to reduce! Need to really call an action and another that depends on the success of that one!
-                /*
-                const initEthereum$ = createEffect(() => this.ethActions$.pipe(
-                    ofType(fromActionEth.ActionTypes.INIT_ETH_SUCCESS),
-                    //take(1),
-                    tap(() => {
-                        console.log('SPECIAL EFFECT DIALOG: DETECTED INIT_ETH_SUCCESS');
-                        this.ethStore.dispatch(new fromAction.CreateTagInt(result));
-                    })
-                    )
-                , { dispatch: false});
+                //Send request to transfer tag in the ethereum network:
+                //let transferTagData = { ...result } as TagTransferDataReq; //Clone current transfer data!
 
-                this.ethStore.dispatch(new fromActionEth.InitEth());
-                 */
-                //this.ethStore.dispatch(batchActions([new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)), new fromActionEth.InitEth()]));
-                //this.ethStore.dispatch(new fromAction.StoreActionUntilEthInited(new fromAction.CreateTagInt(result)));
-                //this.ethStore.dispatch(new fromActionEth.InitEth());
-                //this.ethStore.dispatch(new fromAction.CreateTag(result));
+                //Using Akita instead of NgRx:
+                this.mainContractService.transferTagOwnership(result);
 
-                //Hide button for creation, as one creation is already in progress:
-                //this._creationAvailable = false;
+                //Hide button for tagging, as one tagging is already in progress:
+                //this._removeTaggingAvailable = false;
+
             }
         });
     }
