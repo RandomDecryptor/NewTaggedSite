@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {Tag} from "../../tags/tags.model";
 import {MatDialog, MatTable, MatTableDataSource} from "@angular/material";
-import {Store} from "@ngrx/store";
+import {select, Store} from "@ngrx/store";
 import * as fromTagMainContract from "../../tagmaincontract";
-import {debounceTime} from "rxjs/operators";
+import {debounceTime, filter} from "rxjs/operators";
 import {Observable, of} from "rxjs";
 import {TagTransferDialogComponent} from "../../transfer/dialog/tag-transfer-dialog.component";
 import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
@@ -24,10 +24,13 @@ export class YourTagsComponent implements OnInit {
 
     @ViewChild(MatTable) table: MatTable<Tag>;
 
+    private tagTransferCost: string;
+
     constructor(private taggedContractStore: Store<fromTagMainContract.AppState>,
                 private _dialogService: MatDialog,
                 private cd: ChangeDetectorRef) {
         this._tags = of([]);
+        this.tagTransferCost = null;
     }
 
     private _tags: Observable<Tag[]>;
@@ -49,6 +52,14 @@ export class YourTagsComponent implements OnInit {
                 this.cd.detectChanges();
             });
         */
+        this.taggedContractStore
+            .pipe(
+                select(fromTagMainContract.getTagTransferCost),
+                filter(tagTransferCost => !!tagTransferCost), //Must have value to be interesting (as it has not been initialized yet)
+            )
+            .subscribe(tagTransferCost => {
+                this.tagTransferCost = tagTransferCost;
+            });
     }
 
 /*
@@ -80,12 +91,12 @@ export class YourTagsComponent implements OnInit {
     transferTag(event: any, tag: Tag) {
         console.log('Transfer Tag: ' + tag);
 
-        let value = 0;
+        let transferCost = this.tagTransferCost;
         let dialogRef = this._dialogService.open(TagTransferDialogComponent, {
             width: '440px',
             data: {
                 tag: tag,
-                tagTransferCost: value
+                tagTransferCost: transferCost
             }
         });
         dialogRef.afterClosed().subscribe((result: TagTransferDataReq) => {
