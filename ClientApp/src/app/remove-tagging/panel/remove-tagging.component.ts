@@ -6,6 +6,8 @@ import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {MatOptionSelectionChange, MatSlideToggleChange} from "@angular/material";
 import {MainContractService} from "../../tags/state/main-contract.service";
 import {MainContractQuery} from "../../tags/state/main-contract.query";
+import * as fromEth from "../../ethereum";
+import {select, Store} from "@ngrx/store";
 
 @Component({
     selector: 'app-remove-tagging-panel',
@@ -23,6 +25,8 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
 
     private _currentAddressToRemove: string;
 
+    private _currentUserAccount: string;
+
     private _oldTagId: number;
 
     private _taggingEventsSubscriptions: Subscription;
@@ -38,6 +42,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
     static readonly debounceTimeRemoveTaggingButton = 500;
 
     constructor(
+        private ethStore: Store<fromEth.AppState>,
         private newMainContractService: MainContractService,
         private mainContractQuery: MainContractQuery) {
 
@@ -46,6 +51,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
         this._taggingEventsSubscriptions = null;
         this.tagToggleCheckValue = true;
         this._terminateComp = new Subject();
+        this._currentUserAccount = null;
     }
 
     get currentAddressToRemove(): string {
@@ -103,13 +109,24 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
                 debounceTime(RemoveTaggingComponent.debounceTimeRemoveTaggingButton) //Wait 0.5 seconds to signal change in value
             ).subscribe(value => 1/*this._tagNameChanged(value)*/);
 
+        this.ethStore
+            .pipe(
+                select(fromEth.getDefaultAccount),
+                filter(account => !!account) //Account not null!
+            ).subscribe(activeAccount => {
+                this._currentUserAccount = activeAccount;
+            });
+
+
         //Control Taggings and Removal of Taggings:
         //Taggings events:
         this.mainContractQuery.select(state => state.eventTaggedAddress).pipe(
             takeUntil(this._terminateComp),
             withLatestFrom(this.addressOptions)
         ).subscribe(([taggingEvent, currentAddressOptions]) => {
-            if(taggingEvent && currentAddressOptions) {
+            if( taggingEvent && currentAddressOptions
+                && fromEth.EthUtils.isEqualAddress(taggingEvent.tagger, this._currentUserAccount) //We only want the Tagging events for which the "tagger" was the user itself.
+            ) {
                 console.log('Will need to add tagging of: ' + taggingEvent.tagged);
                 currentAddressOptions.push(taggingEvent.tagged);
                 this.addressOptions.next(currentAddressOptions);
@@ -139,6 +156,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this._terminateComp.next();
         this._terminateComp.unsubscribe();
     }
 

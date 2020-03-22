@@ -168,6 +168,9 @@ export class MainContractListenerManagementService {
                 else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.tagger)) {
                     console.log(" ***** Interesting EVent TaggedAddress (User was tagger): " + event.returnValues.tagId);
                 }
+                else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.tagged)) {
+                    console.log(" ***** Interesting EVent TaggedAddress (User was taggeD): " + event.returnValues.tagId);
+                }
                 else {
                     return;
                 }

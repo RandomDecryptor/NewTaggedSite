@@ -387,7 +387,20 @@ export class AppComponent {
                     msg: `Tag '${tag ? tag.name : eventTagTransfer.tagId}' ownership transferred to you (Account '${eventTagTransfer.newOwner}')`
                 }));
             });
+        });
 
+        this.mainContractQuery.select(state => state.eventTaggedAddress).pipe(
+            filterNil, //Value must have something: Ignore Null/Undefined values,
+            filter(eventTaggedAddress => fromEth.EthUtils.isEqualAddress(eventTaggedAddress.tagged, this._userAddress)),
+        ).subscribe(eventTaggedAddress => {
+            const tag = this.allTagsQuery.getEntity(eventTaggedAddress.tagId);
+            //Notifications need to be added in the ngZone as they were received asynchronous from the Ethereum network:
+            this._ngZone.run(() => {
+                this.notificationService.add(createNotification({
+                    type: NotificationType.INFO,
+                    msg: `Your account was tagged with '${tag ? tag.name : eventTaggedAddress.tagId}' by '${eventTaggedAddress.tagger}'`
+                }));
+            });
         });
 
         //Check for any notifications (using Akita instead of NgRx):
