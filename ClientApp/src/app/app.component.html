@@ -36,7 +36,7 @@
 <br/><br/><br/><br/>
 
 
-<app-your-tags [tags]="ownTags$" *ngIf="(ownTags$ | async).length > 0"></app-your-tags>
+<app-your-tags [tags]="ownTags$" ></app-your-tags>
 
 <br/><br/><br/><br/>
 
@@ -65,7 +65,7 @@
     <br/>
     Notification 2:
     <br/>
-    <div *ngFor="let notif of notifications$ | async"  >{{notif.id}} - {{notif.type}} - {{notif.msg}}</div>
+    <div *ngFor="let notif of (notifications$ | async)"  >{{notif.id}} - {{notif.type}} - {{notif.msg}}</div>
 </div>
 
 <h1>&nbsp;</h1><h1>&nbsp;</h1><h1>&nbsp;</h1>

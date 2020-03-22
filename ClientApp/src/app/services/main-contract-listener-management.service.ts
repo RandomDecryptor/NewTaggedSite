@@ -5,15 +5,15 @@ import {select, Store} from "@ngrx/store";
 import {first} from "rxjs/operators";
 
 import * as fromEth from "../ethereum";
-import {AllTagsStore} from "../tags/state/all-tags.store";
 
 import Web3 from 'web3';
 import {AllTagsQuery} from "../tags/state/all-tags.query";
 import {MainContractStore} from "../tags/state/main-contract.store";
+import {AllTagsService} from "../tags/state/all-tags.service";
 
 interface EventListener {
     listener: any;
-    tagEventType: 'TaggedAddress' | 'TagRemovedFromAddress';
+    tagEventType: 'TaggedAddress' | 'TagRemovedFromAddress' | 'TagTransferOwnership';
     tagIds?: number[];
 }
 
@@ -35,7 +35,7 @@ export class MainContractListenerManagementService {
     constructor(private ethStore: Store<fromEth.AppState>,
                 private taggedContractStore: Store<fromTagMainContract.AppState>,
                 private mainContractService: fromTagMainContract.TagMainContractService,
-                private allTagsStore: AllTagsStore,
+                private allTagsService: AllTagsService,
                 private allTagsQuery: AllTagsQuery,
                 private mainContractStore: MainContractStore,
     ) {
@@ -86,6 +86,13 @@ export class MainContractListenerManagementService {
         const eventRemoveTaggedAddress = this._createListenerRemoveTagggingAddress(tagIds);
 
         this._eventListeners.push(eventRemoveTaggedAddress);
+
+        /*
+            Catch Transfer of ownership of tags (tags the user transferred or the user received ownership of)
+         */
+        const eventTagTransferOwnership = this._createListenerTagTransferOwnership();
+
+        this._eventListeners.push(eventTagTransferOwnership);
 
     }
 
@@ -158,7 +165,7 @@ export class MainContractListenerManagementService {
                     console.log(" ***************************** Interesting EVent TaggedAddress: " + event.returnValues.tagId);
                     ownTags = true;
                 }
-                else if(this._trackingUserAddress === event.returnValues.tagger) {
+                else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.tagger)) {
                     console.log(" ***** Interesting EVent TaggedAddress (User was tagger): " + event.returnValues.tagId);
                 }
                 else {
@@ -304,7 +311,7 @@ export class MainContractListenerManagementService {
                     console.log(" ***************************** Interesting EVent TagRemovedFromAddress: " + event.returnValues.tagId);
                     ownTags = true;
                 }
-                else if(this._trackingUserAddress === event.returnValues.tagger) {
+                else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.tagger)) {
                     console.log(" ***** Interesting EVent TagRemovedFromAddress (User was tagger): " + event.returnValues.tagId);
                 }
                 else {
@@ -358,7 +365,7 @@ export class MainContractListenerManagementService {
                 console.log("totalTaggings: " + result.totalTaggings.toString()); ///BigNumber
                 //this.allTagsManagerHelper.updateByTagging(tagId, result.ownerBalance, result.totalTaggings);
                 //Update in the store the ownerBalance and totalTaggings of the tag:
-                this.allTagsStore.update(tagId, { ownerBalance: result.ownerBalance, totalTaggings: result.totalTaggings });
+                this.allTagsService.update(tagId, { ownerBalance: result.ownerBalance, totalTaggings: result.totalTaggings });
                 //Fire EventTaggingAddress: Visually on the grid signal the updating of the values:
                 this.taggedContractStore.dispatch( new fromTagMainContract.EventTaggingAddress({tagId: tagId, ownerBalance: result.ownerBalance, totalTaggings: result.totalTaggings} ));
             });
@@ -374,4 +381,63 @@ export class MainContractListenerManagementService {
     }
 
 
+    private _createListenerTagTransferOwnership() {
+        let eventListener = this._smartContractResolved.TagTransferred({});
+        let returnedListener = eventListener
+            .on('data', event => {
+                let newOwner;
+                console.log("This Data: " + event);
+                if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.oldOwner)) {
+                    console.log(" ***** Interesting EVent TagTransferred (User was oldOwner): " + event.returnValues.tagId);
+                    newOwner = false;
+                }
+                else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.newOwner)) {
+                    console.log(" ***** Interesting EVent TagTransferred (User was newOwner): " + event.returnValues.tagId);
+                    newOwner = true;
+                }
+                else {
+                    //Tag transfer event that doesn't matter:
+                    return;
+                }
+                if(!event.blockNumber) {
+                    console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
+                    return;
+                }
+                else {
+                    //Doesn't matter if it was own Tag that was used or Removal of Tagging that the user was the tagger, for both these cases,
+                    //we need to update mainContractStore with new tagging:
+                    this.mainContractStore.update({
+                        eventTagTransferOwnership: { tagId: event.returnValues.tagId, oldOwner: event.returnValues.oldOwner, newOwner: event.returnValues.newOwner }
+                    });
+
+                    if(newOwner) {
+                        //New tag was transferred to the user:
+                        console.debug(`New tag allocated to user ${event.returnValues.tagId}.`);
+                        //this.allTagsService.checkNewTag(event.returnValues.tagId);
+                    }
+                    else {
+                        //User has lost a tag:
+                        console.debug(`Tag ownership remove from user ${event.returnValues.tagId}.`);
+                        //this.allTagsService.remove(event.returnValues.tagId);
+                    }
+                    this.allTagsService.update(event.returnValues.tagId, { creatorAddress: event.returnValues.newOwner });
+                }
+            })
+            .on('changed', event => {
+                console.log("Event was removed from blockchain (TagTransferOwnership): " + event);
+            })
+            .on('error', error => {
+                console.log("Error (TagTransferOwnership): " + error);
+            });
+
+        console.debug('** How many Event Awaiting (Tag transfer ownership): ' + returnedListener.eventNames() + ' for address: ' + this._trackingUserAddress);
+
+        const eventTagTransferOwnership = {
+            listener: eventListener,
+            returnedListener: returnedListener,
+            tagEventType: 'TagTransferOwnership',
+            tagIds: []
+        } as EventListener;
+        return eventTagTransferOwnership;
+    }
 }

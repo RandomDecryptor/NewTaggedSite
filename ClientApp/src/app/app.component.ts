@@ -1,11 +1,21 @@
 /*
 	@2019-2020 FC. All rights reserved.
 */
-import {Component} from '@angular/core';
+import {Component, NgZone} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatOptionSelectionChange} from "@angular/material";
 import {combineLatest, Observable, of, ReplaySubject, Subject} from 'rxjs';
-import {catchError, debounceTime, filter, first, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {
+    catchError,
+    debounceTime,
+    filter,
+    first,
+    map,
+    startWith,
+    switchMap,
+    takeUntil,
+    tap
+} from 'rxjs/operators';
 import {select, Store} from "@ngrx/store";
 import * as fromEth from './ethereum';
 import * as fromTagMainContract from './tagmaincontract';
@@ -36,7 +46,6 @@ import {NotificationService} from "./notifications/state/notification.service";
 import {createNotification, UsrNotification} from "./notifications/state/notification.model";
 
 import { filterNil } from '@datorama/akita';
-import {EthereumMainContractService} from "./tags/ethereum/ethereum.main-contract.service";
 
 @Component({
   selector: 'app-root',
@@ -63,6 +72,7 @@ export class AppComponent {
               private notificationService: NotificationService,
               private notificationQuery: NotificationQuery,
               private _toastrService: ToastrService,
+              private _ngZone: NgZone,
               private overlayService: Overlay) {
       this.tagOptions = new ReplaySubject(1);
       this._terminateNameRetrieval = new Subject();
@@ -311,11 +321,9 @@ export class AppComponent {
             this.allTagsQuery.selectAll()
         ).pipe(
             switchMap(([userAccount, allTags]) => {
-                if(userAccount && allTags && allTags.length > 0) {
-                    return this.allTagsQuery.getCreatorTags(userAccount);
-                }
-                else return of([]);
+                return this.allTagsQuery.getCreatorTags(userAccount);
             }),
+            tap(allTags => console.log('********** OwnTags Changed: ' + (allTags ? allTags.length : allTags))),
             catchError(error => {
                 console.error('Error detected in tracking own tags: ' + error);
                 return of([]);
@@ -355,6 +363,33 @@ export class AppComponent {
                 }));
 
             });
+
+        this.mainContractQuery.select("transferTagOwnership").pipe(
+            filterNil //Value must have something: Ignore Null/Undefined values
+        ).subscribe(transferTagOwnership => {
+            const { data, result } = transferTagOwnership;
+            this.notificationService.add( createNotification({
+                type: NotificationType.INFO,
+                msg: `Tag '${data.tag.name}' ownership transferred to address '${data.newOwnerAddress}'`
+            }));
+
+        });
+
+        this.mainContractQuery.select("eventTagTransferOwnership").pipe(
+            filterNil, //Value must have something: Ignore Null/Undefined values,
+            filter(eventTagTransfer => fromEth.EthUtils.isEqualAddress(eventTagTransfer.newOwner, this._userAddress)),
+        ).subscribe(eventTagTransfer => {
+            const tag = this.allTagsQuery.getEntity(eventTagTransfer.tagId);
+            //Notifications need to be added in the ngZone as they were received asynchronous from the Ethereum network:
+            this._ngZone.run(() => {
+                this.notificationService.add(createNotification({
+                    type: NotificationType.INFO,
+                    msg: `Tag '${tag ? tag.name : eventTagTransfer.tagId}' ownership transferred to you (Account '${eventTagTransfer.newOwner}')`
+                }));
+            });
+
+        });
+
         //Check for any notifications (using Akita instead of NgRx):
         this.notificationQuery.selectLast()
             .subscribe(lastNotification => {
@@ -373,6 +408,7 @@ export class AppComponent {
                         this._toastrService.warning(lastNotification.msg, undefined, defaultNotifConfig);
                     }
                     else {
+                        console.debug('New notification INFO: ' + lastNotification.msg);
                         this._toastrService.info(lastNotification.msg, undefined, defaultNotifConfig);
                     }
                 }

@@ -1,10 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    Input,
+    OnDestroy,
+    OnInit,
+    ViewChild
+} from '@angular/core';
 import {Tag} from "../../tags/tags.model";
 import {MatDialog, MatTable, MatTableDataSource} from "@angular/material";
 import {select, Store} from "@ngrx/store";
 import * as fromTagMainContract from "../../tagmaincontract";
-import {debounceTime, filter} from "rxjs/operators";
-import {Observable, of} from "rxjs";
+import {debounceTime, filter, takeUntil} from "rxjs/operators";
+import {Observable, of, Subject} from "rxjs";
 import {TagTransferDialogComponent} from "../../transfer/dialog/tag-transfer-dialog.component";
 import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
 import {MainContractService} from "../../tags/state/main-contract.service";
@@ -15,7 +23,7 @@ import {MainContractService} from "../../tags/state/main-contract.service";
     styleUrls: ['./your-tags.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class YourTagsComponent implements OnInit {
+export class YourTagsComponent implements OnInit, OnDestroy {
 
     columnsToDisplay = ['tagName', 'ownerBalance', 'totalTaggings', 'actions'];
 
@@ -27,12 +35,15 @@ export class YourTagsComponent implements OnInit {
 
     private tagTransferCost: string;
 
+    private _terminate: Subject<void>;
+
     constructor(private taggedContractStore: Store<fromTagMainContract.AppState>, //NgRx
                 private mainContractService: MainContractService, //Akita
                 private _dialogService: MatDialog,
                 private cd: ChangeDetectorRef) {
         this._tags = of([]);
         this.tagTransferCost = null;
+        this._terminate = new Subject();
     }
 
     private _tags: Observable<Tag[]>;
@@ -57,6 +68,7 @@ export class YourTagsComponent implements OnInit {
         this.taggedContractStore
             .pipe(
                 select(fromTagMainContract.getTagTransferCost),
+                takeUntil(this._terminate),
                 filter(tagTransferCost => !!tagTransferCost), //Must have value to be interesting (as it has not been initialized yet)
             )
             .subscribe(tagTransferCost => {
@@ -73,11 +85,18 @@ export class YourTagsComponent implements OnInit {
         this._tags = value;
         if(this._tags) {
             this._tags.pipe(
-                debounceTime(YourTagsComponent.DEBOUNCE_TIME_TAGGING_EVENT) //Wait 0.5 seconds to signal change in value
+                debounceTime(YourTagsComponent.DEBOUNCE_TIME_TAGGING_EVENT), //Wait 0.5 seconds to signal change in value
+                takeUntil(this._terminate),
             ).subscribe(tags => {
-                this._dataSource.data = tags;
-                //To force refresh of data source
-                this.cd.detectChanges();
+                if(!this._terminate.isStopped) {
+                    console.debug('Tags Set for Your Tags: ' + (tags ? tags.length: tags));
+                    this._dataSource.data = tags;
+                    //To force refresh of data source
+                    this.cd.detectChanges();
+                }
+                else {
+                    console.debug('Set Tags: Your Tags already Terminated!');
+                }
             });
         }
     }
@@ -101,7 +120,9 @@ export class YourTagsComponent implements OnInit {
                 tagTransferCost: transferCost
             }
         });
-        dialogRef.afterClosed().subscribe((result: TagTransferDataReq) => {
+        dialogRef.afterClosed().pipe(
+            takeUntil(this._terminate)
+        ).subscribe((result: TagTransferDataReq) => {
             if (result) {
                 //The dialog was closed as a OK!
                 //Continue processing as expected:
@@ -119,5 +140,11 @@ export class YourTagsComponent implements OnInit {
 
             }
         });
+    }
+
+    ngOnDestroy(): void {
+        console.debug('Terminate Your-Tags-Component');
+        this._terminate.next();
+        this._terminate.complete();
     }
 }

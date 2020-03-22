@@ -9,6 +9,12 @@ import {catchError, first, map, switchMap, tap} from "rxjs/operators";
 import {EthereumMainContractException} from "./exceptions";
 import {TagContractService} from "../../tagmaincontract/tagcontract/tag-contract.services";
 
+export interface TransactionResult {
+    tx: string;
+    receipt: any;
+    logs: any[];
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -86,15 +92,15 @@ export class EthereumMainContractService {
      * Remove a tagging from an address specified by the user.s
      * When removing a tagging is because for sure the user has already logged in with his wallet (Needed to know which addresses are possible to remove taggings from!)
      */
-    public removeTagging(tagId: number, addressToRemoveTaggging: string): Observable<boolean> {
+    public removeTagging(tagId: number, addressToRemoveTaggging: string): Observable<TransactionResult> {
         const gasLimit = 6000000; //TODO: Decrease gas limit ! Doesn't need to be so high!
         return this.getSmartContractConnected().pipe(
             switchMap((instance: any) => {
                 //Can't use this.web3.eth.defaultAccount the first time! Not working for Remove Tagging, have no idea why! in the TaggingAddress worked without problems!
-                return from<boolean>(instance.removeTagById(tagId, addressToRemoveTaggging, {from: this._defaultAccount, gas: gasLimit }));
+                return from<TransactionResult>(instance.removeTagById(tagId, addressToRemoveTaggging, {from: this._defaultAccount, gas: gasLimit }));
             }),
             //On next methods, it's the result of final creation, with the block and event results of a successful creation:
-            tap(value => console.log("Remove Tagging address return: " + value)), //Should be True / False! Or Any??? Result of Transaction! TODO: Check and update accordingly!
+            tap(value => console.log("Remove Tagging address return: " + value)), //Result of Transaction!
         );
     }
 
@@ -137,15 +143,15 @@ export class EthereumMainContractService {
         return this.tagContractService.getSymbol(tagContractAddress);
     }
 
-    transferTagOwnership(tagId: number, newOwnerAddress: string, tagTransferCost: string): Observable<boolean> {
-        const gasLimit = 6000000; //TODO: Decrease gas limit ! Doesn't need to be so high!
+    transferTagOwnership(tagId: number, newOwnerAddress: string, tagTransferCost: string): Observable<TransactionResult> {
+        const gasLimit = 60000; //Executed: 41196 gas
         return this.getSmartContractConnected().pipe(
             switchMap((instance: any) => {
                 //Can't use this.web3.eth.defaultAccount the first time! Not working for Remove Tagging, have no idea why! in the TaggingAddress worked without problems!
-                return from<boolean>(instance.transferTagRegistrationByTagId(tagId, newOwnerAddress, EthereumMainContractService.ZERO_ADDRESS, {from: this._defaultAccount, value: tagTransferCost,  gas: gasLimit }));
+                return from<TransactionResult>(instance.transferTagRegistrationByTagId(tagId, newOwnerAddress, EthereumMainContractService.ZERO_ADDRESS, {from: this._defaultAccount, value: tagTransferCost,  gas: gasLimit }));
             }),
             //On next methods, it's the result of final creation, with the block and event results of a successful creation:
-            tap(value => console.log("Transfer Tag Ownership return: " + value)), //Should be True / False! Or Any??? Result of Transaction! TODO: Check and update accordingly!
+            tap(value => console.log("Transfer Tag Ownership return: " + value)), //Result of Transaction! TODO: Check and update accordingly!
         );
     }
 }

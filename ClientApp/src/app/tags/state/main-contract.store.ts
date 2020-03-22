@@ -9,6 +9,7 @@ export interface MainContractState {
     transferTagOwnership: { data: TagTransferDataReq, result: any };
     eventTaggedAddress: { tagId: number, tagger: string, tagged: string };
     eventRemovedTaggingAddress: { tagId: number, tagger: string, tagged: string };
+    eventTagTransferOwnership: { tagId: number, oldOwner: string, newOwner: string };
 }
 
 export function createInitialState(): MainContractState {
@@ -17,6 +18,7 @@ export function createInitialState(): MainContractState {
         transferTagOwnership: null,
         eventTaggedAddress: null,
         eventRemovedTaggingAddress: null,
+        eventTagTransferOwnership: null,
     };
 }
 
