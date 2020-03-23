@@ -35,8 +35,12 @@
 
 <br/><br/><br/><br/>
 
+<mat-divider></mat-divider>
 
-<app-your-tags [tags]="ownTags$" ></app-your-tags>
+<div fxLayout="row " fxLayoutAlign="space-between start">
+    <app-your-tags [tags]="ownTags$" ></app-your-tags>
+    <app-account-taggings></app-account-taggings>
+</div>
 
 <br/><br/><br/><br/>
 

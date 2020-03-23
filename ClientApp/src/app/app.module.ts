@@ -65,6 +65,7 @@ import {RemoveTaggingComponent} from "./remove-tagging/panel/remove-tagging.comp
 import {TaggedContractAddress} from "./services/tokens";
 import {TagTransferDialogComponent} from "./transfer/dialog/tag-transfer-dialog.component";
 import { ExtraTagInfoComponent } from './transfer/dialog/extra-tag-info/extra-tag-info.component';
+import {AccountTaggingsComponent} from "./consultation/account-taggings/account-taggings.component";
 
 if (environment.production) {
     enableAkitaProdMode();
@@ -88,6 +89,7 @@ if (environment.production) {
     ConnectWalletComponent,
     ConnectEthereumNetworkComponent,
     YourTagsComponent,
+    AccountTaggingsComponent,
     RemoveTaggingComponent,
   ],
     entryComponents: [
