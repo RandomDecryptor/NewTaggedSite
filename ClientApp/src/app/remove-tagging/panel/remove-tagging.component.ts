@@ -137,7 +137,9 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
             takeUntil(this._terminateComp),
             withLatestFrom(this.addressOptions)
         ).subscribe(([removeTaggingEvent, currentAddressOptions]) => {
-            if(removeTaggingEvent && currentAddressOptions) {
+            if(removeTaggingEvent && currentAddressOptions
+                && fromEth.EthUtils.isEqualAddress(removeTaggingEvent.tagger, this._currentUserAccount) //We only want the Tagging events for which the "tagger" was the user itself.
+            ) {
                 console.log('Will need to add removal of tagging: ' + removeTaggingEvent.tagged);
                 this.addressOptions.next(currentAddressOptions.filter(value => value !== removeTaggingEvent.tagged));
             }
