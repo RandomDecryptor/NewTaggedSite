@@ -40,7 +40,7 @@ enum TaggingType {
 })
 export class AccountTaggingsComponent implements OnInit, OnDestroy {
 
-    columnsToDisplay = ['tagName', 'balance', 'actions'];
+    columnsToDisplay = ['tagName', 'balance', 'symbol', 'actions'];
 
     static readonly DEBOUNCE_TIME_TAGGING_EVENT = 500;
 

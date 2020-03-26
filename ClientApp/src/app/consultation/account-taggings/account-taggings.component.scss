@@ -2,13 +2,23 @@
     margin-right: 50px;
 }
 
-.mat-column-balance {
+th.mat-column-balance {
+    text-align: center;
+}
+
+td.mat-column-balance {
     text-align: right;
     justify-content: flex-end;
     width: 6rem;
 }
 
-.mat-column-actions {
+.mat-column-symbol {
+    text-align: left;
+    padding-left: 10px;
+    width: 6rem;
+}
+
+td.mat-column-actions {
     text-align: right;
     justify-content: flex-end;
     width: 13.25rem;
