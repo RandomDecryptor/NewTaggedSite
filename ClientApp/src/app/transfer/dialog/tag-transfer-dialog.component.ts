@@ -89,5 +89,7 @@ export class TagTransferDialogComponent {
                 this._extraInfoDialog = null;
             });
         }
+
+        return false; //Don't follow http link
     }
 }

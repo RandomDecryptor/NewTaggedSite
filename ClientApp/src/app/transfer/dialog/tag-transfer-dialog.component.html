@@ -4,7 +4,7 @@
         <mat-form-field placeholder="Tag name" class="transfer-field">
             <input matInput readonly [ngModel]="data.tag.name" >
         </mat-form-field>
-        <a href="#MoreInfo" (click)="onClickMoreInfo()">I</a>
+        <a href="#" (click)="onClickMoreInfo()">I</a>
     </div>
     <mat-form-field class="transfer-field">
         <input matInput readonly placeholder="Cost to transfer tag (Eth)" value="{{ dataReq.tagTransferCost | weiToEther }}">
