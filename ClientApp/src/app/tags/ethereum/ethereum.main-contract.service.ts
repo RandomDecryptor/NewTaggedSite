@@ -15,6 +15,11 @@ export interface TransactionResult {
     logs: any[];
 }
 
+export interface TaggingBalance {
+    [key: number]: number;
+}
+
+
 @Injectable({
     providedIn: 'root'
 })
@@ -89,7 +94,7 @@ export class EthereumMainContractService {
     }
 
     /**
-     * Remove a tagging from an address specified by the user.s
+     * Remove a tagging from an address specified by the user.
      * When removing a tagging is because for sure the user has already logged in with his wallet (Needed to know which addresses are possible to remove taggings from!)
      */
     public removeTagging(tagId: number, addressToRemoveTaggging: string): Observable<TransactionResult> {
@@ -154,4 +159,30 @@ export class EthereumMainContractService {
             tap(value => console.log("Transfer Tag Ownership return: " + value)), //Result of Transaction! TODO: Check and update accordingly!
         );
     }
+
+    retrieveHistoricAllTaggingRemovalRelatedEventsToUserAddress(userAddress: string): Observable<any[][]> {
+        return this.getSmartContract().pipe(
+            first(),
+            switchMap(contract => this._retrieveHistoricAllTaggingRemovalRelatedEventsToUserAddress(contract, userAddress))
+        );
+    }
+
+    private _retrieveHistoricAllTaggingRemovalRelatedEventsToUserAddress(contract: any, userAddress: string): Observable<any[][]>  {
+        const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagged: userAddress }, fromBlock: 0, toBlock: 'latest' });
+        console.log('eventsTaggedAddress Taggings to user address: ' + eventsTaggedAddress);
+        const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagged: userAddress }, fromBlock: 0, toBlock: 'latest' });
+        console.log('eventsRemovedTaggingAddress Taggings to user address: ' + eventsRemovedTaggingAddress);
+        return combineLatest(
+            from(eventsTaggedAddress),
+            from(eventsRemovedTaggingAddress)
+        ).pipe(
+            first(), //Only the first combination of Tagged addresses and Removed Addresses matter! (As it is a getPastEvents, should not matter much, as only one value from each would be available!)
+            map(([eventsTagged, eventsRemoved]) => {
+                console.log('eventsTaggedAddress.value Taggings to user address: ' + eventsTagged);
+                console.log('eventsRemoved.value Taggings to user address: ' + eventsRemoved);
+                return [eventsTagged as any[], eventsRemoved as any[]];
+            })
+        );
+    }
+
 }

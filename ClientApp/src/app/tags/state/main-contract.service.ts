@@ -6,7 +6,7 @@ import {Observable, of} from "rxjs";
 import {NotificationService} from "../../notifications/state/notification.service";
 import {createNotification} from "../../notifications/state/notification.model";
 import {NotificationType} from "../../notifications/notifications";
-import {EthereumMainContractService} from "../ethereum/ethereum.main-contract.service";
+import {EthereumMainContractService, TaggingBalance} from "../ethereum/ethereum.main-contract.service";
 import {Tag} from "../tags.model";
 import {AllTagsService} from "./all-tags.service";
 import {AllTagsQuery} from "./all-tags.query";
@@ -62,8 +62,7 @@ export class MainContractService {
             console.error('_processTaggingsForRemovalPrep: One of taggings or tagging removals are null!');
             return [];
         }
-        var addresses = [],
-            taggingsMap = {},
+        var taggingsMap = {},
             unTaggingsMap = {};
         //Filter the addresses that are finally tagged (the ones that were untagged remove):
         taggings.forEach((elem, index) => {
@@ -91,6 +90,55 @@ export class MainContractService {
         });
 
         return ret;
+    };
+
+    /**
+     * Gets all taggings user address receive (taggings and removal of taggings).
+     * Note: Very different from selectAllRemovedAddressesFromTag(), as that one is for taggings the user does, and not taggings the user has received.
+     * @param userAddress
+     */
+    public retrieveAllTaggingsToUserAddress(userAddress: string): Observable<TaggingBalance> {
+        return this.ethereumMainContractService.retrieveHistoricAllTaggingRemovalRelatedEventsToUserAddress(userAddress).pipe(
+            map(([eventsTagged, eventsRemoved]) => {
+                return this._processTaggingsForRemovalPrepToTaggingsDoneToUser(eventsTagged, eventsRemoved);
+            }),
+            catchError(error => {
+                console.log('ERROR retrieveAllTaggingsToUserAddress: ' + error);
+                return of([]);
+            })
+        );
+    }
+
+    private _processTaggingsForRemovalPrepToTaggingsDoneToUser(taggings, taggingRemovals): /*{ tagId: number, balance: number }*/TaggingBalance {
+        if(taggings == null || taggingRemovals == null) {
+            console.error('_processTaggingsForRemovalPrepToTaggingsDoneToUser: One of taggings or tagging removals are null!');
+            return {};
+        }
+        var taggingsMap: TaggingBalance = {};
+        //Just count the number of taggings minus the number of removal taggings for each tag, to get its balance.
+        //Filter the addresses that are finally tagged (the ones that were untagged remove):
+        taggings.forEach((elem, index) => {
+            if (!elem.removed && elem.blockNumber) {
+                //Increase number of taggings of user account for that Tag:
+                if(taggingsMap[elem.args.tagId]) {
+                    taggingsMap[elem.args.tagId]++;
+                }
+                else {
+                    taggingsMap[elem.args.tagId] = 1;
+                }
+            }
+        });
+        if(taggingRemovals.length > 0) {
+            taggingRemovals.forEach((elem, index) => {
+                if (!elem.removed && elem.blockNumber) {
+                    //Decrease number of taggings of user account for that Tag:
+                    taggingsMap[elem.args.tagId]--;
+                }
+            });
+        }
+
+        return this._filterZeroTaggingValues(taggingsMap);
+
     };
 
     retrieveFullInfoTag(tagId: number) {
@@ -128,5 +176,21 @@ export class MainContractService {
                 this.mainContractStore.update({ transferTagOwnership : { data: transferTagDataReq, result: transferTagOwnershipResult} } );
             }
         });
+    }
+
+    /**
+     * Remove taggings with zero balance.
+     *
+     * @param taggingsMap
+     * @private
+     */
+    private _filterZeroTaggingValues(taggingsMap: TaggingBalance): TaggingBalance {
+        const res: TaggingBalance = {};
+        Object.entries(taggingsMap).forEach(([key, value]) => {
+            if(value && value > 0) {
+                res[key] = value;
+            }
+        });
+        return res;
     }
 }
