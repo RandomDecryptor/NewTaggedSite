@@ -6,7 +6,7 @@ export const environment = {
   production: false,
   taggedContractInfo: {
       contractAddress: '0xdBaF944889A03715a9BC26590899109cb6dA134b',
-      contractFirstBlock: '0'
+      contractFirstBlock: 0
   },
   externals: {
       urlTraceTransaction: 'https://ropsten.etherscan.io/tx/{0}',

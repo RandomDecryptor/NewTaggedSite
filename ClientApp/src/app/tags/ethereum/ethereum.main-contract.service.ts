@@ -1,6 +1,6 @@
 import {Inject, Injectable} from '@angular/core';
 
-import {SmartContract, TaggedContractAddress, WEB3} from "../../services/tokens";
+import {SmartContract, TaggedContractAddress, TaggedContractFirstBlock, WEB3} from "../../services/tokens";
 import Web3 from 'web3';
 import {TruffleContract} from 'truffle-contract';
 
@@ -28,6 +28,7 @@ export class EthereumMainContractService {
     static readonly ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
     private _contractAddress = null; //"0xdBaF944889A03715a9BC26590899109cb6dA134b"; //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
+    private _contractFirstBlock = 0; //0 - Should be a much later value in production (real Ethereum network)
 
     private _smartContract$: Observable<any> = null;
     private _smartContractResolved: any = null;
@@ -37,8 +38,10 @@ export class EthereumMainContractService {
     constructor(@Inject(WEB3) private web3: Web3,
                 @Inject(SmartContract) private smartContract: TruffleContract,
                 private tagContractService: TagContractService,
-                @Inject(TaggedContractAddress) smartContractAddress: string) {
+                @Inject(TaggedContractAddress) smartContractAddress: string,
+                @Inject(TaggedContractFirstBlock) smartContractFirstBlock: number) {
         this._contractAddress = smartContractAddress;
+        this._contractFirstBlock = smartContractFirstBlock;
     }
 
     public getSmartContract() {
@@ -123,9 +126,9 @@ export class EthereumMainContractService {
 
     private _selectHistoricAllRemovedAddressesFromTag(contract, userAddress: string, tagId: number): Observable<any[][]> {
         //const eventTaggedAddress = this._smartContractResolved.TaggedAddress({filter: { tagger: userAddress, tagId: tagId}});
-        const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: 0, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
+        const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: this._contractFirstBlock, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
         console.log('eventsTaggedAddress :' + eventsTaggedAddress);
-        const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: 0, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
+        const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagger: userAddress, tagId: tagId }, fromBlock: this._contractFirstBlock, toBlock: 'latest' }/*({filter: { tagger: userAddress, tagId: tagId}}*/);
         console.log('eventsRemovedTaggingAddress :' + eventsRemovedTaggingAddress);
         return combineLatest(
             from(eventsTaggedAddress),
@@ -168,9 +171,9 @@ export class EthereumMainContractService {
     }
 
     private _retrieveHistoricAllTaggingRemovalRelatedEventsToUserAddress(contract: any, userAddress: string): Observable<any[][]>  {
-        const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagged: userAddress }, fromBlock: 0, toBlock: 'latest' });
+        const eventsTaggedAddress = contract.getPastEvents('TaggedAddress', { filter: { tagged: userAddress }, fromBlock: this._contractFirstBlock, toBlock: 'latest' });
         console.log('eventsTaggedAddress Taggings to user address: ' + eventsTaggedAddress);
-        const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagged: userAddress }, fromBlock: 0, toBlock: 'latest' });
+        const eventsRemovedTaggingAddress = contract.getPastEvents('TagRemovedFromAddress', { filter: { tagged: userAddress }, fromBlock: this._contractFirstBlock, toBlock: 'latest' });
         console.log('eventsRemovedTaggingAddress Taggings to user address: ' + eventsRemovedTaggingAddress);
         return combineLatest(
             from(eventsTaggedAddress),

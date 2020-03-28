@@ -35,7 +35,7 @@ export const SimpleTagSmartContract = new InjectionToken<contract>('simpleTagSma
 
 export const TaggedContractAddress = new InjectionToken<string>('taggedContractAddress');
 
-export const TaggedContractFirstBlock = new InjectionToken<string>('taggedContractFirstBlock');
+export const TaggedContractFirstBlock = new InjectionToken<number>('taggedContractFirstBlock');
 
 export const ExternalUrlTraceTransaction = new InjectionToken<string>('externalUrlTraceTransaction');
 
