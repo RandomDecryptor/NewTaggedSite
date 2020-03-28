@@ -34,3 +34,12 @@ export const SimpleTagSmartContract = new InjectionToken<contract>('simpleTagSma
 });
 
 export const TaggedContractAddress = new InjectionToken<string>('taggedContractAddress');
+
+export const TaggedContractFirstBlock = new InjectionToken<string>('taggedContractFirstBlock');
+
+export const ExternalUrlTraceTransaction = new InjectionToken<string>('externalUrlTraceTransaction');
+
+export const ExternalUrlFilterByTokenAndTagger = new InjectionToken<string>('externalUrlFilterByTokenAndTagger');
+
+export const ExternalUrlFilterByTokenAndTagged = new InjectionToken<string>('externalUrlFilterByTokenAndTagged');
+

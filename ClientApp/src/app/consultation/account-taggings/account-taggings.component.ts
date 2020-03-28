@@ -1,7 +1,7 @@
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
-    Component,
+    Component, Inject,
     OnDestroy,
     OnInit,
     ViewChild
@@ -18,6 +18,8 @@ import {filterNil} from "@datorama/akita";
 import {AllTagsQuery} from "../../tags/state/all-tags.query";
 import {Tag} from "../../tags/tags.model";
 import {TaggingBalance} from "../../tags/ethereum/ethereum.main-contract.service";
+import {StringUtils} from "../../helpers/string.utils";
+import {ExternalUrlFilterByTokenAndTagged} from "../../services/tokens";
 
 export interface Tagging {
     tagId: number;
@@ -60,6 +62,7 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
                 private mainContractQuery: MainContractQuery,
                 private allTagsQuery: AllTagsQuery,
                 private _dialogService: MatDialog,
+                @Inject(ExternalUrlFilterByTokenAndTagged) private urlFilterByTokenAndTagged: string,
                 private cd: ChangeDetectorRef) {
         //this._taggings = [{ tagId: 0, tagName: 'test tag', balance: 100, contractAddress: '', symbol: 'TEST' }];
         this._taggings = [];
@@ -132,6 +135,8 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
 
     checkTagging($event: MouseEvent, tagging: Tagging) {
         console.log('Check Taggings in Ethereum network!');
+        //let urlFilterByTokenAndTagger = 'https://ropsten.etherscan.io/token/{0}?a={1}';
+        window.open(StringUtils.format(this.urlFilterByTokenAndTagged, tagging.contractAddress, this._currentUserAccount), '_blank', 'noopener');
     }
 
     private _updateTaggings(tagId: number, type: TaggingType, initialBalance: number = 1) {

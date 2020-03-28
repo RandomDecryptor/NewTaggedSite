@@ -62,7 +62,13 @@ import { YourTagsComponent } from './consultation/your-tags/your-tags.component'
 import { enableAkitaProdMode } from '@datorama/akita';
 import {AkitaNgDevtools} from '@datorama/akita-ngdevtools';
 import {RemoveTaggingComponent} from "./remove-tagging/panel/remove-tagging.component";
-import {TaggedContractAddress} from "./services/tokens";
+import {
+    ExternalUrlFilterByTokenAndTagged,
+    ExternalUrlFilterByTokenAndTagger,
+    ExternalUrlTraceTransaction,
+    TaggedContractAddress,
+    TaggedContractFirstBlock
+} from "./services/tokens";
 import {TagTransferDialogComponent} from "./transfer/dialog/tag-transfer-dialog.component";
 import { ExtraTagInfoComponent } from './transfer/dialog/extra-tag-info/extra-tag-info.component';
 import {AccountTaggingsComponent} from "./consultation/account-taggings/account-taggings.component";
@@ -142,7 +148,12 @@ if (environment.production) {
       ContrastCheckerService,
       //{ provide: TaggedContractAddress, useValue: '0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe' } //Test Net Ropsten Contract Address
       //{ provide: TaggedContractAddress, useValue: '0x0824a71C5F61DC213Eb7c5830192a311F079Da09' } //Ganache Local Network Test new-tagged (New Value: Complete Contract Redeployed!)
-      { provide: TaggedContractAddress, useValue: '0xdBaF944889A03715a9BC26590899109cb6dA134b' } //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
+      //{ provide: TaggedContractAddress, useValue: '0xdBaF944889A03715a9BC26590899109cb6dA134b' }, //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
+      { provide: TaggedContractAddress, useValue: environment.taggedContractInfo.contractAddress }, //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
+      { provide: TaggedContractFirstBlock, useValue: environment.taggedContractInfo.contractFirstBlock },
+      { provide: ExternalUrlTraceTransaction, useValue: environment.externals.urlTraceTransaction },
+      { provide: ExternalUrlFilterByTokenAndTagger, useValue: environment.externals.urlFilterByTokenAndTagger },
+      { provide: ExternalUrlFilterByTokenAndTagged, useValue: environment.externals.urlFilterByTokenAndTagged },
   ],
   bootstrap: [AppComponent]
 })
