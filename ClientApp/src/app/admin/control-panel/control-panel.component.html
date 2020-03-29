@@ -1,0 +1,20 @@
+
+<h3>Admin Control Panel</h3>
+<div>
+<h5>Select a tag:</h5>
+<mat-radio-group aria-label="Select a tag" [(ngModel)]="tagSelected">
+    <mat-radio-button value="1">Tag 1 - NEW TAG</mat-radio-button>
+    <mat-radio-button value="2">Tag 2 - NOVA TAG</mat-radio-button>
+</mat-radio-group>
+</div>
+
+<br/>
+
+<button mat-raised-button type="button" (click)="sendRealTaggingEventToContract()" >Real Send Tag Event</button>
+<button mat-raised-button type="button" (click)="sendRealRemoveTagEventToContract()" >Real Remove Tag Event</button>
+
+<button mat-raised-button type="button" (click)="sendTagEventFromAcc11()" >Send Tag Event from Acc11</button>
+<button mat-raised-button type="button" (click)="sendTagEventFromAcc12()" >Send Tag Event from Acc12</button>
+<button mat-raised-button type="button" (click)="sendTagEventFromBoth()" >Send Tag Event from Both</button>
+<button mat-raised-button type="button" (click)="sendRemoveTagEventFromAcc11()" >Send Remove Tag Event from Acc11</button>
+<button mat-raised-button type="button" (click)="sendRemoveTagEventFromAcc12()" >Send Remove Tag Event from Acc12</button>

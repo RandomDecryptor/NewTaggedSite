@@ -393,7 +393,7 @@ export class AppComponent {
             filterNil, //Value must have something: Ignore Null/Undefined values,
             filter(eventTaggedAddress => fromEth.EthUtils.isEqualAddress(eventTaggedAddress.tagged, this._userAddress)),
         ).subscribe(eventTaggedAddress => {
-            const tag = this.allTagsQuery.getEntity(eventTaggedAddress.tagId);
+            const tag = this.allTagsQuery.getEntity(parseInt(eventTaggedAddress.tagId));
             //Notifications need to be added in the ngZone as they were received asynchronous from the Ethereum network:
             this._ngZone.run(() => {
                 this.notificationService.add(createNotification({

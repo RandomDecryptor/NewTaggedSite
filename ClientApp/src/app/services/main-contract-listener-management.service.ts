@@ -155,12 +155,14 @@ export class MainContractListenerManagementService {
         }
         //Test fix a value for tagIds!
         //let eventListener = this._smartContractResolved.TaggedAddress({filter: { tagId: tagIds}}/*, {} NEEDS CALLBACK HERE???!! */);
+        console.debug('Creating tagging event listener!');
         let eventListener = this._smartContractResolved.TaggedAddress({});
         let returnedListener = eventListener
             .on('data', event => {
                 let ownTags = false;
                 console.log("Have Data! Size tagIds: " + (tagIds ? tagIds.length : tagIds));
-                console.log("This Data: " + event);
+                //console.log("This Data: " + event);
+                console.log(`This Event Tagging Data: id: ${event.id} blockNumber: ${event.blockNumber} logIndex: ${event.logIndex} blockHash: ${event.blockHash}`);
                 if(this._trackingOwnTagIds.findIndex(value => value === event.returnValues.tagId) >= 0) {
                     console.log(" ***************************** Interesting EVent TaggedAddress: " + event.returnValues.tagId);
                     ownTags = true;
@@ -316,6 +318,9 @@ export class MainContractListenerManagementService {
                 }
                 else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.tagger)) {
                     console.log(" ***** Interesting EVent TagRemovedFromAddress (User was tagger): " + event.returnValues.tagId);
+                }
+                else if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.tagged)) {
+                    console.log(" ***** Interesting EVent TagRemovedFromAddress (User was taggeD): " + event.returnValues.tagId);
                 }
                 else {
                     return;

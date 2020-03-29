@@ -10,7 +10,7 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDialogModule, MatListModule
+    MatDialogModule, MatListModule, MatRadioModule
 } from "@angular/material";
 
 import {MatTableModule} from '@angular/material/table';
@@ -72,6 +72,7 @@ import {
 import {TagTransferDialogComponent} from "./transfer/dialog/tag-transfer-dialog.component";
 import { ExtraTagInfoComponent } from './transfer/dialog/extra-tag-info/extra-tag-info.component';
 import {AccountTaggingsComponent} from "./consultation/account-taggings/account-taggings.component";
+import { ControlPanelComponent } from './admin/control-panel/control-panel.component';
 
 if (environment.production) {
     enableAkitaProdMode();
@@ -97,6 +98,7 @@ if (environment.production) {
     YourTagsComponent,
     AccountTaggingsComponent,
     RemoveTaggingComponent,
+    ControlPanelComponent,
   ],
     entryComponents: [
         TagCreationDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!
@@ -141,8 +143,8 @@ if (environment.production) {
         TagMainContractModule, //TODO: Maybe try to remove this from here!! Use the Router like the other example!
         MatDialogModule,
         MatListModule,
+        MatRadioModule,
         environment.production ? [] : AkitaNgDevtools.forRoot()
-
     ],
   providers: [
       ContrastCheckerService,

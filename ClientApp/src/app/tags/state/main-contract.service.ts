@@ -163,6 +163,32 @@ export class MainContractService {
         }
     }
 
+    retrieveNameTag(tagId: number) {
+        const tag: Tag = this.allTagsQuery.getEntity(tagId);
+        if(!tag.name) {
+            //Missing name: retrieve it:
+            this.ethereumMainContractService.retrieveTagName(tag.contractAddress, tag.tagId).pipe(
+                first()
+            ).subscribe(name => {
+                //tag.name = name;
+                this.allTagsService.update(tag.tagId, {name: name});
+            });
+        }
+    }
+
+    retrieveSymbolTag(tagId: number) {
+        const tag: Tag = this.allTagsQuery.getEntity(tagId);
+        if(!tag.symbol) {
+            //Missing symbol: retrieve it:
+            this.ethereumMainContractService.retrieveTagSymbol(tag.contractAddress, tag.tagId).pipe(
+                first()
+            ).subscribe(symbol => {
+                //tag.symbol = symbol;
+                this.allTagsService.update(tag.tagId, {symbol: symbol});
+            });
+        }
+    }
+
     transferTagOwnership(transferTagDataReq: TagTransferDataReq) {
         this.ethereumMainContractService.transferTagOwnership(transferTagDataReq.tag.tagId, transferTagDataReq.newOwnerAddress, transferTagDataReq.tagTransferCost).pipe(
             catchError(err => {

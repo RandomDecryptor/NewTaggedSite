@@ -20,6 +20,7 @@ import {Tag} from "../../tags/tags.model";
 import {TaggingBalance} from "../../tags/ethereum/ethereum.main-contract.service";
 import {StringUtils} from "../../helpers/string.utils";
 import {ExternalUrlFilterByTokenAndTagged} from "../../services/tokens";
+import {EthUtils} from "../../ethereum";
 
 export interface Tagging {
     tagId: number;
@@ -72,12 +73,23 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
         this._currentUserAccount = null;
     }
 
+    private _refreshTaggingsOnScreen() {
+        this._dataSource.data = this._taggings;
+        //this.cd.markForCheck(); //TODO: Maybe will need detectChanges and not just markForCheck!
+        this.cd.detectChanges();
+    }
+
     ngOnInit() {
 
         this.ethStore
             .pipe(
                 select(fromEth.getDefaultAccount),
-                filter(account => !!account) //Account not null!
+                filter(account => !!account //Account not null!
+                                            && (
+                                                !this._currentUserAccount
+                                                || !EthUtils.isEqualAddress(this._currentUserAccount, account) //Must check if the current user account has really changed, or just some triggering of the default account
+                                            )
+                )
             ).subscribe(activeAccount => {
                 this._currentUserAccount = activeAccount;
                 this.mainContractService.retrieveAllTaggingsToUserAddress(activeAccount).pipe(
@@ -87,8 +99,7 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
                         this._updateTaggings(parseInt(key), TaggingType.TAGGING, value);
                     });
 
-                    this._dataSource.data = this._taggings;
-                    this.cd.markForCheck();
+                    this._refreshTaggingsOnScreen();
                 });
             });
 
@@ -99,10 +110,10 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
             if( taggingEvent
                 && fromEth.EthUtils.isEqualAddress(taggingEvent.tagged, this._currentUserAccount) //We only want the Tagging events for which the "tagged" was the user itself.
             ) {
-                console.log('Will need to add tagging by: ' + taggingEvent.tagger);
-                this._updateTaggings(taggingEvent.tagId, TaggingType.TAGGING);
+                console.log('Will need to add tagging \'' + taggingEvent.tagId + '\' by: ' + taggingEvent.tagger);
+                this._updateTaggings(parseInt(taggingEvent.tagId), TaggingType.TAGGING);
 
-                this.cd.markForCheck(); //TODO: Maybe will need detectChanges and not just markForCheck!
+                //this.cd.markForCheck(); //TODO: Maybe will need detectChanges and not just markForCheck!
             }
         });
         //Removal of tagging events:
@@ -112,8 +123,8 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
             if(removeTaggingEvent
                 && fromEth.EthUtils.isEqualAddress(removeTaggingEvent.tagged, this._currentUserAccount) //We only want the Tagging events for which the "tagged" was the user itself.
             ) {
-                console.log('Will need to add removal of tagging by: ' + removeTaggingEvent.tagger);
-                this._updateTaggings(removeTaggingEvent.tagId, TaggingType.REMOVAL);
+                console.log('Will need to add removal of tagging \'' + removeTaggingEvent.tagId + '\' by: ' + removeTaggingEvent.tagger);
+                this._updateTaggings(parseInt(removeTaggingEvent.tagId), TaggingType.REMOVAL);
             }
         });
 
@@ -144,10 +155,13 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
         if(index < 0 && type === TaggingType.TAGGING) {
             //New tagging, that doesn't exists yet:
             const tag: Tag = this.allTagsQuery.getEntity(tagId);
-            if(tag) {
+            if(tag
+                && tag.name && tag.symbol //Check for tag name and symbol too! If not present already delay adding until their retrieval
+            ) {
                 //We already have tag information:
                 this._taggings.push({tagId: tagId, balance: initialBalance, tagName: tag.name, symbol: tag.symbol, contractAddress: tag.contractAddress });
                 console.debug('>>>> Added taggings for ' + tagId);
+                this._refreshTaggingsOnScreen();
             }
             else {
                 console.debug('>>>> Will delay show taggings for ' + tagId);
@@ -159,9 +173,13 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
                     filter(tag => !!tag)
                 ).subscribe(tag => {
                     console.debug('>>>> Waited for Tag to exist: ' + tag);
-                    if(!tag.name && !tag.symbol) {
-                        //No Info: Start process to retrieve rest of info:
-                        this.mainContractService.retrieveFullInfoTag(tagId);
+                    if(!tag.name) {
+                        //No Tag Name: Start process to retrieve tag name:
+                        this.mainContractService.retrieveNameTag(tagId);
+                    }
+                    if(!tag.symbol) {
+                        //No Tag Name: Start process to retrieve tag symbol name:
+                        this.mainContractService.retrieveSymbolTag(tagId);
                     }
                     else if(tag.name && tag.symbol) {
                         //We have the complete information, we can stop listening to changes to the tag:
@@ -170,20 +188,28 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
                         //Have complete info: Show information:
                         this._updateTaggings(tagId, TaggingType.TAGGING, initialBalance);
                         //this._taggings.push({tagId: tagId, balance: initialBalance, tagName: tag.name, symbol: tag.symbol, contractAddress: tag.contractAddress });
-                        this.cd.markForCheck();
+                        //this.cd.markForCheck();
                     }
                 });
             }
         }
-        else {
+        else if(index >= 0) {
             //Already existed:
             if(type === TaggingType.TAGGING) {
                 this._taggings[index].balance++;
             }
             else {
-                //Removal of tag:
-                this._taggings.splice(index, 1);
+                //Decrease balance of the taggings of that tag:
+                this._taggings[index].balance--;
+                //Removal of tag, if balance reaches zero:
+                if(this._taggings[index].balance <= 0) {
+                    this._taggings.splice(index, 1);
+                }
             }
+            this._refreshTaggingsOnScreen();
+        }
+        else {
+            console.error('>>>> ERROR: REMOVAL OF A TAG THAT WAS NOT FOUND!');
         }
     }
 }

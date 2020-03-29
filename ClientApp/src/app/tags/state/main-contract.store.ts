@@ -7,8 +7,8 @@ import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
 export interface MainContractState {
     removeTaggingAddress: { data: TagRemoveTaggingData, result: any };
     transferTagOwnership: { data: TagTransferDataReq, result: any };
-    eventTaggedAddress: { tagId: number, tagger: string, tagged: string };
-    eventRemovedTaggingAddress: { tagId: number, tagger: string, tagged: string };
+    eventTaggedAddress: { tagId: string, tagger: string, tagged: string };
+    eventRemovedTaggingAddress: { tagId: string, tagger: string, tagged: string };
     eventTagTransferOwnership: { tagId: number, oldOwner: string, newOwner: string };
 }
 
