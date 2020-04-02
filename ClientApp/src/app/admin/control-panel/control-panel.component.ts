@@ -14,6 +14,8 @@ export class ControlPanelComponent implements OnInit {
 
     private _targetAccount;
 
+    private _newTags = 4;
+
     tagSelected: string;
 
     constructor(
@@ -67,4 +69,20 @@ export class ControlPanelComponent implements OnInit {
     sendRealRemoveTagEventToContract() {
         this.tagMainContractService.removeTagging(parseInt(this.tagSelected), this._targetAccount).subscribe();
     }
+
+    sendTaggingForNewTag() {
+        console.debug('sendTaggingForNewTag!');
+        this.mainContractStore.update({
+            eventTaggedAddress: { tagId: "" + this._newTags, tagger: this._account1, tagged: this._targetAccount }
+        });
+        this._newTags++;
+    }
+
+    sendRemoveTaggingForNewTag() {
+        console.debug('sendRemoveTaggingForNewTag!');
+        this.mainContractStore.update({
+            eventRemovedTaggingAddress: { tagId: "" + (--this._newTags), tagger: this._account1, tagged: this._targetAccount }
+        });
+    }
+
 }

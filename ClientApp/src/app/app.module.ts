@@ -10,7 +10,7 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDialogModule, MatListModule, MatRadioModule
+    MatDialogModule, MatListModule, MatRadioModule, MatPaginatorModule
 } from "@angular/material";
 
 import {MatTableModule} from '@angular/material/table';
@@ -144,7 +144,8 @@ if (environment.production) {
         MatDialogModule,
         MatListModule,
         MatRadioModule,
-        environment.production ? [] : AkitaNgDevtools.forRoot()
+        environment.production ? [] : AkitaNgDevtools.forRoot(),
+        MatPaginatorModule
     ],
   providers: [
       ContrastCheckerService,

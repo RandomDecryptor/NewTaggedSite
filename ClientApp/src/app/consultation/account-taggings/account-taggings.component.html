@@ -21,4 +21,8 @@
         <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
         <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplay"></tr>
     </table>
+    <mat-paginator [ngClass]="{ 'paginatorHidden': dataSource.data.length <= pageSize }" [length]="dataSource.data.length"
+                   [pageSize]="pageSize"
+                   class="paginator">
+    </mat-paginator>
 </ng-container>

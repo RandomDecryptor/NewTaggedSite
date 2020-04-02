@@ -1,12 +1,12 @@
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
-    Component, Inject,
+    Component, Inject, Input,
     OnDestroy,
     OnInit,
     ViewChild
 } from '@angular/core';
-import {MatDialog, MatTable, MatTableDataSource} from "@angular/material";
+import {MatDialog, MatPaginator, MatTable, MatTableDataSource} from "@angular/material";
 import {select, Store} from "@ngrx/store";
 import * as fromTagMainContract from "../../tagmaincontract";
 import {debounceTime, filter, takeUntil, withLatestFrom} from "rxjs/operators";
@@ -53,9 +53,13 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
 
     @ViewChild(MatTable) table: MatTable<Tagging>;
 
+    @ViewChild(MatPaginator) paginator: MatPaginator;
+
     private _taggings: Tagging[];
 
     private _terminate: Subject<void>;
+
+    @Input() pageSize = 10;
 
     constructor(private taggedContractStore: Store<fromTagMainContract.AppState>, //NgRx
                 private ethStore: Store<fromEth.AppState>,
@@ -74,12 +78,15 @@ export class AccountTaggingsComponent implements OnInit, OnDestroy {
     }
 
     private _refreshTaggingsOnScreen() {
+        console.debug('_refreshTaggingsOnScreen');
         this._dataSource.data = this._taggings;
-        //this.cd.markForCheck(); //TODO: Maybe will need detectChanges and not just markForCheck!
+        this._dataSource.paginator = this.paginator;
         this.cd.detectChanges();
     }
 
     ngOnInit() {
+
+        this._dataSource.paginator = this.paginator;
 
         this.ethStore
             .pipe(
