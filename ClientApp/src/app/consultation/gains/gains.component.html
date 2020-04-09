@@ -1,0 +1,13 @@
+<div *ngIf="totalGains > 0">
+    <p>
+      Gains Graphic!
+    </p>
+    <h3>
+        <p>
+            You have gotten a total of {{totalGains | weiToEther}} Eth gains from Tag.gd.
+        </p>
+        <p>
+            You still have {{gainsToCollect | weiToEther}} Eth for your account in Tag.gd contract. Press <a href="#" (click)="collectGains()">here</a> to collect it.
+        </p>
+    </h3>
+</div>

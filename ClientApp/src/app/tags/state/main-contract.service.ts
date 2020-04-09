@@ -12,6 +12,14 @@ import {AllTagsService} from "./all-tags.service";
 import {AllTagsQuery} from "./all-tags.query";
 import {TagTransferDataReq} from "../../transfer/tag-transfer-data";
 
+export interface GainEvent {
+    address: string;
+    weiToReceive: string;
+    totalWeiToReceive: string;
+    blockNumber: number;
+}
+
+
 @Injectable({
     providedIn: 'root'
 })
@@ -22,6 +30,10 @@ export class MainContractService {
                 private allTagsQuery: AllTagsQuery,
                 private allTagsService: AllTagsService,
                 private notificationService: NotificationService) {
+    }
+
+    public createBigNumber(value: any) {
+        return this.ethereumMainContractService.createBigNumber(value);
     }
 
     public removeTagging(removeTaggingData: TagRemoveTaggingData) {
@@ -218,5 +230,39 @@ export class MainContractService {
             }
         });
         return res;
+    }
+
+
+    /**
+     * Gets all gains gotten the user address has received.
+     * @param userAddress
+     */
+    public retrieveAllGainsForUserAddress(userAddress: string): Observable<GainEvent[]> {
+        return this.ethereumMainContractService.retrieveHistoricAllGainsGottenEventsToUserAddress(userAddress).pipe(
+            map(eventsGainsGotten => {
+                return this._processGainsGottenForUserAddress(eventsGainsGotten);
+            }),
+            catchError(error => {
+                console.log('ERROR retrieveAllGainsForUserAddress: ' + error);
+                return of([]);
+            })
+        );
+    }
+
+    private _processGainsGottenForUserAddress(eventsGainsGotten: any[]): GainEvent[] {
+        return eventsGainsGotten.map(eventGains => ({ address: eventGains.returnValues.addr, weiToReceive: eventGains.returnValues.weiToReceive, totalWeiToReceive: eventGains.returnValues.totalWeiToReceive, blockNumber: eventGains.blockNumber }) as GainEvent);
+    }
+
+    /**
+     * Gets the current gains the user account can retrieve from the contract.
+     * @param userAddress
+     */
+    public retrieveGainsToRetrieveForUserAddress(userAddress: string): Observable<any/*BN*/> {
+        return this.ethereumMainContractService.retrieveGainsToRetrieveForUserAddress(userAddress).pipe(
+            catchError(error => {
+                console.error('ERROR retrieveGainsToRetrieveForUserAddress: ' + error);
+                return of('0');
+            })
+        );
     }
 }

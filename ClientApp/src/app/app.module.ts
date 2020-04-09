@@ -73,6 +73,7 @@ import {TagTransferDialogComponent} from "./transfer/dialog/tag-transfer-dialog.
 import { ExtraTagInfoComponent } from './transfer/dialog/extra-tag-info/extra-tag-info.component';
 import {AccountTaggingsComponent} from "./consultation/account-taggings/account-taggings.component";
 import { ControlPanelComponent } from './admin/control-panel/control-panel.component';
+import { GainsComponent } from './consultation/gains/gains.component';
 
 if (environment.production) {
     enableAkitaProdMode();
@@ -99,6 +100,7 @@ if (environment.production) {
     AccountTaggingsComponent,
     RemoveTaggingComponent,
     ControlPanelComponent,
+    GainsComponent,
   ],
     entryComponents: [
         TagCreationDialogComponent, //Dialog component will be instantiated dynamically by the Dialog service!

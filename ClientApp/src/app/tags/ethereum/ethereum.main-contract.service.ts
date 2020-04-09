@@ -19,7 +19,6 @@ export interface TaggingBalance {
     [key: number]: number;
 }
 
-
 @Injectable({
     providedIn: 'root'
 })
@@ -94,6 +93,13 @@ export class EthereumMainContractService {
                 }
             })
         );
+    }
+
+    public createBigNumber(value: any) {
+        //In version < 1 of Web3 is still BigNumber instead of BN:
+        //return new this.web3.BigNumber(value);
+        //In version >= 1 of Web3 is using BN instead of BigNumber:
+        return new this.web3.utils.BN(value);
     }
 
     /**
@@ -188,4 +194,33 @@ export class EthereumMainContractService {
         );
     }
 
+    retrieveHistoricAllGainsGottenEventsToUserAddress(userAddress: string): Observable<any[]> {
+        return this.getSmartContract().pipe(
+            first(),
+            switchMap(contract => this._retrieveHistoricAllGainsGottenEventsToUserAddress(contract, userAddress))
+        );
+    }
+
+    private _retrieveHistoricAllGainsGottenEventsToUserAddress(contract: any, userAddress: string): Observable<any[][]>  {
+        const eventsGainsGotten = contract.getPastEvents('GainsGotten', { filter: { addr: userAddress }, fromBlock: this._contractFirstBlock, toBlock: 'latest' });
+        console.log('eventsGainsGotten Gains gotten by user address: ' + eventsGainsGotten);
+        return from(eventsGainsGotten).pipe(
+            first(), //Only the first combination of Tagged addresses and Removed Addresses matter! (As it is a getPastEvents, should not matter much, as only one value from each would be available!)
+            map(eventsGains => {
+                console.log('eventsGainsGotten.value GainsGotten by user address: ' + eventsGains);
+                return eventsGains as any[];
+            })
+        );
+
+    }
+
+    retrieveGainsToRetrieveForUserAddress(userAddress: string): Observable<any/*BN*/> {
+        return this.getSmartContract().pipe(
+            switchMap((instance: any) => {
+                return from(instance.checkGainsToReceive({from: userAddress }));
+            }),
+            //On next methods, it's the result of final creation, with the block and event results of a successful creation:
+            tap(value => console.log("Gains to Retrieve For user account : " + value)), //Result of return!
+        );
+    }
 }
