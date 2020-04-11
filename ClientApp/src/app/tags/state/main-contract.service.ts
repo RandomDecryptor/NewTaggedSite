@@ -6,7 +6,11 @@ import {Observable, of} from "rxjs";
 import {NotificationService} from "../../notifications/state/notification.service";
 import {createNotification} from "../../notifications/state/notification.model";
 import {NotificationType} from "../../notifications/notifications";
-import {EthereumMainContractService, TaggingBalance} from "../ethereum/ethereum.main-contract.service";
+import {
+    EthereumMainContractService,
+    TaggingBalance,
+    TransactionResult
+} from "../ethereum/ethereum.main-contract.service";
 import {Tag} from "../tags.model";
 import {AllTagsService} from "./all-tags.service";
 import {AllTagsQuery} from "./all-tags.query";
@@ -265,4 +269,26 @@ export class MainContractService {
             })
         );
     }
+
+    public retrieveGainsGotten() {
+        this.ethereumMainContractService.retrieveGainsGotten().pipe(
+            catchError(err => {
+                const msgExtracted = err['message'] ? err['message'] : err;
+                this.notificationService.add(createNotification({ type: NotificationType.ERR, msg : `Error retrieving gains': ${msgExtracted}` } ));
+                return of(null);
+            })
+        ).subscribe(result => {
+            console.log(`MainContractService: Retrieve gains: ${result}`);
+            //Check if result was with success:
+            if(result) {
+                //Check event logging of GainsRetrieved:
+                const gainsRetrieveLog = result.receipt.logs.find(eventLog => eventLog.event === 'GainsRetrieved');
+                if(gainsRetrieveLog) {
+                    //result.receipt.logs.filter(eventLog => eventLog.event === 'GainsRetrieved')[0].args.weiReceived.toString()
+                    this.mainContractStore.update({ retrieveGains : {userAddress: gainsRetrieveLog.args.addr, weiReceived: gainsRetrieveLog.args.weiReceived, result: result} } );
+                }
+            }
+        });
+    }
+
 }

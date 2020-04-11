@@ -13,7 +13,7 @@ import {AllTagsService} from "../tags/state/all-tags.service";
 
 interface EventListener {
     listener: any;
-    tagEventType: 'TaggedAddress' | 'TagRemovedFromAddress' | 'TagTransferOwnership';
+    tagEventType: 'TaggedAddress' | 'TagRemovedFromAddress' | 'TagTransferOwnership' | 'GainsGotten';
     tagIds?: number[];
 }
 
@@ -94,6 +94,12 @@ export class MainContractListenerManagementService {
 
         this._eventListeners.push(eventTagTransferOwnership);
 
+        /*
+            Catch Gains Gotten event (somebody else does a transaction in the network, and the current user gotten a part of eth received)
+         */
+        const eventGainsGotten = this._createListenerGainsGotten();
+
+        this._eventListeners.push(eventGainsGotten);
     }
 
     private _trackEventsOnTags(allTags: Tag[], resetListeners: boolean) {
@@ -447,5 +453,45 @@ export class MainContractListenerManagementService {
             tagIds: []
         } as EventListener;
         return eventTagTransferOwnership;
+    }
+
+    private _createListenerGainsGotten() {
+        let eventListener = this._smartContractResolved.GainsGotten({});
+        let returnedListener = eventListener
+            .on('data', event => {
+                console.log("This Data: " + event);
+                if(fromEth.EthUtils.isEqualAddress(this._trackingUserAddress, event.returnValues.addr)) {
+                    console.log(" ***** Interesting EVent GainsGotten: " + event.returnValues.weiReceived);
+                }
+                else {
+                    //Gains Gotten event that doesn't matter:
+                    return;
+                }
+                if(!event.blockNumber) {
+                    console.log("Invalid BlockNumber -> Still pending on blockchain and not confirmed!");
+                    return;
+                }
+                else {
+                    this.mainContractStore.update({
+                        eventGainsGotten: { userAddress: event.returnValues.addr, weiToReceive: event.returnValues.weiToReceive, totalWeiToReceive: event.returnValues.totalWeiToReceive }
+                    });
+                }
+            })
+            .on('changed', event => {
+                console.log("Event was removed from blockchain (GainsGotten): " + event);
+            })
+            .on('error', error => {
+                console.log("Error (GainsGotten): " + error);
+            });
+
+        console.debug('** How many Event Awaiting (Gains Gotten): ' + returnedListener.eventNames() + ' for address: ' + this._trackingUserAddress);
+
+        const eventGainsGotten = {
+            listener: eventListener,
+            returnedListener: returnedListener,
+            tagEventType: 'GainsGotten',
+            tagIds: []
+        } as EventListener;
+        return eventGainsGotten;
     }
 }

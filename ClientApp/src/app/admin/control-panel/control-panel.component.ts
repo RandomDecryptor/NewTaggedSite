@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {MainContractStore} from "../../tags/state/main-contract.store";
 import {TagMainContractService} from "../../tagmaincontract";
+import {GainsSoundService} from "../../consultation/gains/services/gains-sound.service";
 
 @Component({
     selector: 'app-admin-control-panel',
@@ -21,6 +22,7 @@ export class ControlPanelComponent implements OnInit {
     constructor(
         private mainContractStore: MainContractStore,
         private tagMainContractService: TagMainContractService,
+        private gainsSoundService: GainsSoundService
     ) {
         this._targetAccount = this._account1;
     }
@@ -85,4 +87,15 @@ export class ControlPanelComponent implements OnInit {
         });
     }
 
+    sendGainsGottenEvent() {
+        console.debug('sendGainsGottenEvent!');
+        this.mainContractStore.update({
+            eventGainsGotten: { userAddress: this._targetAccount, weiToReceive: '2500000000000000', totalWeiToReceive: '5000000000000000' }
+        });
+
+    }
+
+    playGainsGottenSound() {
+        this.gainsSoundService.playGainsSound();
+    }
 }

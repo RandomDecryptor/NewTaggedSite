@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {Subject} from "rxjs";
 import {GainEvent, MainContractService} from "../../tags/state/main-contract.service";
 import {MainContractQuery} from "../../tags/state/main-contract.query";
@@ -6,6 +6,12 @@ import {select, Store} from "@ngrx/store";
 import * as fromEth from "../../ethereum";
 import {filter, takeUntil} from "rxjs/operators";
 import {EthUtils} from "../../ethereum";
+import {filterNil} from "@datorama/akita";
+import {createNotification} from "../../notifications/state/notification.model";
+import {NotificationType} from "../../notifications/notifications";
+import {NotificationService} from "../../notifications/state/notification.service";
+import {WeiToEtherPipe} from "../../pipes/wei-to-ether.pipe";
+import {GainsSoundService} from "./services/gains-sound.service";
 
 @Component({
     selector: 'app-gains',
@@ -25,13 +31,18 @@ export class GainsComponent implements OnInit, OnDestroy {
         private ethStore: Store<fromEth.AppState>, //NgRx
         private mainContractService: MainContractService, //Akita
         private mainContractQuery: MainContractQuery,
-        private cd: ChangeDetectorRef
+        private notificationService: NotificationService,
+        private weiToEtherPipe: WeiToEtherPipe,
+        private gainsSoundService: GainsSoundService,
+        private cd: ChangeDetectorRef,
+        private ngZone: NgZone
     ) {
         this._currentUserAccount = null;
         this._terminate = new Subject<void>();
     }
 
     ngOnInit() {
+
         this.ethStore
             .pipe(
                 select(fromEth.getDefaultAccount),
@@ -67,23 +78,44 @@ export class GainsComponent implements OnInit, OnDestroy {
                 });
             });
 
-        //TODO:
-        //...
-        /*
         //Gains Gotten events:
         this.mainContractQuery.select(state => state.eventGainsGotten).pipe(
             takeUntil(this._terminate),
         ).subscribe(gainsGottenEvent => {
             if( gainsGottenEvent
-                && fromEth.EthUtils.isEqualAddress(gainsGottenEvent.tagged, this._currentUserAccount) //We only want the Tagging events for which the "tagged" was the user itself.
+                && fromEth.EthUtils.isEqualAddress(gainsGottenEvent.userAddress, this._currentUserAccount) //We only want the GainsGotten events for which the "userAddress" was the user itself.
             ) {
-                console.log('Will need to add tagging \'' + gainsGottenEvent.tagId + '\' by: ' + gainsGottenEvent.tagger);
-                this._updateTaggings(parseInt(gainsGottenEvent.tagId), TaggingType.TAGGING);
+                console.log('Will need to add gains ' + gainsGottenEvent.weiToReceive + ' Wei / Total : ' + gainsGottenEvent.totalWeiToReceive + ' Wei.');
+                this._updateGains(gainsGottenEvent.weiToReceive, gainsGottenEvent.totalWeiToReceive);
+                const valueToReceiveEth = this.weiToEtherPipe.transform(gainsGottenEvent.weiToReceive);
+                this.ngZone.run(() => {
+                    this.notificationService.add(createNotification({
+                        type: NotificationType.INFO_GAINS,
+                        msg: `${valueToReceiveEth} Eth were added to your gains.`
+                    }));
+                });
+                //Play gains sound:
+                this.gainsSoundService.playGainsSound();
 
-                //this.cd.markForCheck(); //TODO: Maybe will need detectChanges and not just markForCheck!
+                //Refresh screen as this event will not be triggered by Angular side, but by other services:
+                this.cd.detectChanges();
             }
         });
-         */
+
+        //Retrieve Gains event:
+        this.mainContractQuery.select("retrieveGains").pipe(
+            filterNil //Value must have something: Ignore Null/Undefined values
+        ).subscribe(retrieveGains => {
+            const { userAddress, weiReceived, result } = retrieveGains;
+            const valueReceivedEth = this.weiToEtherPipe.transform(weiReceived);
+            this.notificationService.add( createNotification({
+                type: NotificationType.INFO,
+                msg: `You have collected your gains: ${valueReceivedEth} Eth.`
+            }));
+            this.gainsToCollect = '0';
+            this.cd.markForCheck();
+        });
+
     }
 
     ngOnDestroy() {
@@ -94,5 +126,22 @@ export class GainsComponent implements OnInit, OnDestroy {
 
     collectGains() {
         console.log('Collect Gains Link pressed!');
+        this.mainContractService.retrieveGainsGotten();
+    }
+
+    private _updateGains(weiToReceive: any, totalWeiToReceive: any) {
+        if(weiToReceive) {
+            let baseValueBN;
+            if(!this.totalGains) {
+                baseValueBN = this.mainContractService.createBigNumber('0');
+            }
+            else {
+                baseValueBN = this.mainContractService.createBigNumber(this.totalGains);
+            }
+            //Increase the total gains forever until now the user account has gotten:
+            this.totalGains = baseValueBN.add(this.mainContractService.createBigNumber(weiToReceive));
+        }
+        //Update the gains the user can collect at the moment:
+        this.gainsToCollect = totalWeiToReceive;
     }
 }

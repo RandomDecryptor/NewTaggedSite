@@ -223,4 +223,15 @@ export class EthereumMainContractService {
             tap(value => console.log("Gains to Retrieve For user account : " + value)), //Result of return!
         );
     }
+
+    retrieveGainsGotten(): Observable<TransactionResult> {
+        const gasLimit = 100000; //Executed: 32224 gas (Have to have a certain margin, as gas cost during transaction is much higher)
+        return this.getSmartContractConnected().pipe(
+            switchMap((instance: any) => {
+                return from<TransactionResult>(instance.retrieveGains({from: this._defaultAccount, gas: gasLimit }));
+            }),
+            //On next methods, it's the result of final creation, with the block and event results of a successful creation:
+            tap(value => console.log("Retrieve gains return: " + value)), //Result of Transaction! TODO: Check and update accordingly!
+        );
+    }
 }

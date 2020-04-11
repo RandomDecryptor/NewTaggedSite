@@ -151,6 +151,7 @@ if (environment.production) {
     ],
   providers: [
       ContrastCheckerService,
+      WeiToEtherPipe,
       //{ provide: TaggedContractAddress, useValue: '0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe' } //Test Net Ropsten Contract Address
       //{ provide: TaggedContractAddress, useValue: '0x0824a71C5F61DC213Eb7c5830192a311F079Da09' } //Ganache Local Network Test new-tagged (New Value: Complete Contract Redeployed!)
       //{ provide: TaggedContractAddress, useValue: '0xdBaF944889A03715a9BC26590899109cb6dA134b' }, //ganache-cli Local Network Test newtagged4 (New Value: Complete Contract Redeployed!)
