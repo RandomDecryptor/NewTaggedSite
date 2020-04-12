@@ -17,6 +17,8 @@ export class TagContractService {
 
     static readonly TAG_SUFFIX_SIZE = 13;
 
+    static readonly FREE_CREATOR_TAGGINGS = 100;
+
     private readonly _invalidCharsTagNameRegExp = /[\x00-\x19]|[\u0000-\u0019]|[\x7f\xff]|[\u007f\u00ff]/; /* Used for checking invalid characters in the tag names retrieved from the Ethereum network */
 
     private _escapeDomOperator: HTMLParagraphElement;

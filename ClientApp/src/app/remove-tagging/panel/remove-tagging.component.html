@@ -11,7 +11,7 @@
                 <input type="text" id="tagAddress"  matInput placeholder="Tag contract address" aria-label="Tag Contract Address" readonly [value]="data.tag.contractAddress" />
             </mat-form-field>
             <mat-form-field class="example-full-width">
-                <input type="text" maxlength="42" name="addressToRemoveTag" appRestrictTo="[a-fxA-FX0-9]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick an address to remove tag from" aria-label="Selected Address Name" [formControl]="myControl" [matAutocomplete]="autoAddressToRemove" >
+                <input type="text" maxlength="42" name="addressToRemoveTag" appRestrictTo="[a-fxA-FX0-9]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick an address to remove tag from" aria-label="Pick an address to remove tag from" [formControl]="selectedAddressToRemoveFromControl" [matAutocomplete]="autoAddressToRemove" >
                 <mat-autocomplete autoActiveFirstOption #autoAddressToRemove="matAutocomplete" [displayWith]="displayFn">
                     <mat-option *ngFor="let option of filteredAddresses | async" [value]="option" (onSelectionChange)="selectionChanged($event, option)" >{{option}}</mat-option>
                 </mat-autocomplete>

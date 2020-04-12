@@ -15,7 +15,7 @@ import {select, Store} from "@ngrx/store";
     styleUrls: ['./remove-tagging.component.scss']
 })
 export class RemoveTaggingComponent implements OnInit, OnDestroy {
-    myControl = new FormControl();
+    selectedAddressToRemoveFromControl = new FormControl();
     addressOptions: BehaviorSubject<string[]>;
     filteredAddresses: Observable<string[]>;
 
@@ -80,7 +80,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.filteredAddresses = this.myControl.valueChanges
+        this.filteredAddresses = this.selectedAddressToRemoveFromControl.valueChanges
             .pipe(
                 takeUntil(this._terminateComp),
                 startWith(''),
@@ -89,7 +89,7 @@ export class RemoveTaggingComponent implements OnInit, OnDestroy {
                 switchMap(value => this._filter(value))
             );
 
-        this.myControl.valueChanges
+        this.selectedAddressToRemoveFromControl.valueChanges
             .pipe(
                 takeUntil(this._terminateComp),
                 startWith(''),

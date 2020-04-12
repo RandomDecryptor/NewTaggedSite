@@ -53,7 +53,7 @@ import { filterNil } from '@datorama/akita';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  myControl = new FormControl();
+  tagNameControl = new FormControl();
   tagOptions: ReplaySubject<Tag[]>;
   filteredOptions: Observable<Tag[]>;
     private _terminateNameRetrieval: Subject<void>;
@@ -165,7 +165,7 @@ export class AppComponent {
     }
 
     ngOnInit() {
-        this.filteredOptions = this.myControl.valueChanges
+        this.filteredOptions = this.tagNameControl.valueChanges
             .pipe(
                 startWith(''),
                 map(value => typeof value === 'string' ? value : value.name), //When we set the value as an object/array and not a string it was also coming through here, and in that case we have to filter by the name/value[0] and not the all value.
@@ -173,7 +173,7 @@ export class AppComponent {
                 switchMap(value => this._filter(value))
             );
 
-        this.myControl.valueChanges
+        this.tagNameControl.valueChanges
             .pipe(
                 startWith(''),
                 //TODO: Try filter by just string!
@@ -587,12 +587,7 @@ export class AppComponent {
   selectionChanged($event: MatOptionSelectionChange, optionSelected: Tag) {
     if($event.source.selected) {
         console.log('Options Selected: ' + optionSelected.name);
-        //An already existing tag was selected:
-        this._currentTag = optionSelected;
-        this._tagOrRemoveTagToggle = false; //Reset to show tagging first!
-        this._removeTagToggleAvailable = false; //Reset to know if later we display this or not
-        this.prepareTagging();
-        this.prepareRemoveTagging();
+        this._selectTag(optionSelected);
     }
     else {
         console.log('Options Deselected: ' + optionSelected ? optionSelected.name : 'No Name');
@@ -600,6 +595,15 @@ export class AppComponent {
         //this._currentTag = null;
     }
   }
+
+   private _selectTag(tagToSelect: Tag) {
+        //An already existing tag was selected:
+        this._currentTag = tagToSelect;
+        this._tagOrRemoveTagToggle = false; //Reset to show tagging first!
+        this._removeTagToggleAvailable = false; //Reset to know if later we display this or not
+        this.prepareTagging();
+        this.prepareRemoveTagging();
+   }
 
   fieldCleared() {
     console.log('Field was cleared no option selected now!!');
@@ -784,5 +788,11 @@ export class AppComponent {
 
     hasRemovableAddressesEvent(hasAddresses: boolean) {
         this._removeTagToggleAvailable = hasAddresses;
+    }
+
+    onTopTagsSelectTag(tag: Tag) {
+        //this.myControl.setErrors('Error in field!! TESTING');
+        this.tagNameControl.setValue(tag);
+        this._selectTag(tag);
     }
 }

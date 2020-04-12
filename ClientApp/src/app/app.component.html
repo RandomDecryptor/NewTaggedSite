@@ -14,7 +14,7 @@
     <form class="example-form">
       <mat-form-field class="example-full-width">
           <!-- [a-zA-Z!#-&(-/:;=?@€£§{}[]´`~^_|«»0-9 ]|[\xc0-\xfe] -->
-        <input type="text" id="testCampo" maxlength="51" appRestrictTo="[a-zA-Z!#-&(-/:;=?@€£§{}´`~^_|«»0-9 ]|[\xc0-\xfe]|[[]|[\]]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick a Tag Name" aria-label="Selected Tag Name" [formControl]="myControl" [matAutocomplete]="autoTagName" >
+        <input type="text" id="testCampo" maxlength="51" appRestrictTo="[a-zA-Z!#-&(-/:;=?@€£§{}´`~^_|«»0-9 ]|[\xc0-\xfe]|[[]|[\]]" oninput="this.value = this.value.toUpperCase()" matInput placeholder="Pick a Tag Name" aria-label="Selected Tag Name" [formControl]="tagNameControl" [matAutocomplete]="autoTagName" >
         <mat-autocomplete autoActiveFirstOption #autoTagName="matAutocomplete" [displayWith]="displayFn">
           <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (onSelectionChange)="selectionChanged($event, option)" >{{option.name}}</mat-option>
         </mat-autocomplete>
@@ -45,6 +45,10 @@
 <br/><br/><br/><br/>
 
 <app-gains></app-gains>
+
+<br/><br/><br/><br/>
+
+<app-top-tags [tags]="tags$" (toSelectTag)="onTopTagsSelectTag($event)"></app-top-tags>
 
 <br/><br/><br/><br/>
 
