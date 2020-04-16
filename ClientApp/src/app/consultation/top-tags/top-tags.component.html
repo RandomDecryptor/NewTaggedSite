@@ -1,5 +1,9 @@
-<ng-container *ngIf="((tags | async).length) > 0">
-    <h3>Top tags:</h3>
+<ng-container *ngIf="((tags$ | async).length) > 0">
+    <div fxLayout="row" fxLayoutAlign="space-between center" class="topTagsHeader" >
+        <h3>Top tags:</h3>
+        <h3><mat-slide-toggle [checked]="false" (change)="changeTopTagsToggle()" title="Top 10/100" aria-label="Top 10/100">Top 100</mat-slide-toggle></h3>
+    </div>
+
 
     <table mat-table [dataSource]="dataSource" class="table">
         <ng-container matColumnDef="tagName">

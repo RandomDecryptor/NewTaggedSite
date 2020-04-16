@@ -36,38 +36,28 @@ export class TopTagsComponent implements OnInit, OnDestroy {
 
     @ViewChild(MatTable) table: MatTable<Tag>;
 
-    private tagTransferCost: string;
-
     @Output() toSelectTag: EventEmitter<Tag> = new EventEmitter();
 
     private _numLinesTop: number;
 
     private _terminate: Subject<void>;
 
-    private _tags: Observable<Tag[]>;
+    private _tags$: Observable<Tag[]>;
+
+    private _origTags: Tag[]; //Original tags without any filtering
 
     private _freeCreatorTaggingsBN;
 
     constructor(private taggedContractStore: Store<fromTagMainContract.AppState>, //NgRx
                 private mainContractService: MainContractService, //Akita
                 private cd: ChangeDetectorRef) {
-        this._numLinesTop = 10; //Start with top 10, by default!
-        this._tags = of([]);
-        this.tagTransferCost = null;
+        this._numLinesTop = 2; //Start with top 10, by default!
+        this._tags$ = of([]);
         this._terminate = new Subject();
         this._freeCreatorTaggingsBN = mainContractService.createBigNumber(TagContractService.FREE_CREATOR_TAGGINGS);
     }
 
     ngOnInit() {
-        this.taggedContractStore
-            .pipe(
-                select(fromTagMainContract.getTagTransferCost),
-                takeUntil(this._terminate),
-                filter(tagTransferCost => !!tagTransferCost), //Must have value to be interesting (as it has not been initialized yet)
-            )
-            .subscribe(tagTransferCost => {
-                this.tagTransferCost = tagTransferCost;
-            });
     }
 
     get numLinesTop(): number {
@@ -77,6 +67,10 @@ export class TopTagsComponent implements OnInit, OnDestroy {
     @Input()
     set numLinesTop(numLines: number) {
         this._numLinesTop = numLines;
+        //Check if we already have data:
+        if(this._dataSource.data && this._dataSource.data.length > 0) {
+            this._setTopTags(this._origTags);
+        }
     }
 
     /*
@@ -84,15 +78,16 @@ export class TopTagsComponent implements OnInit, OnDestroy {
             this.table.renderRows();
         }
     */
-    @Input() set tags(value: Observable<Tag[]>) {
-        this._tags = value;
-        if(this._tags) {
-            this._tags.pipe(
+    @Input() set tags$(value: Observable<Tag[]>) {
+        this._tags$ = value;
+        if(this._tags$) {
+            this._tags$.pipe(
                 debounceTime(TopTagsComponent.DEBOUNCE_TIME_TAGGING_EVENT), //Wait 0.5 seconds to signal change in value
                 takeUntil(this._terminate),
             ).subscribe(tags => {
                 if(!this._terminate.isStopped) {
                     console.debug('Tags Set for Top Tags: ' + (tags ? tags.length: tags));
+                    this._origTags = tags;
                     this._setTopTags(tags);
                 }
                 else {
@@ -136,6 +131,10 @@ export class TopTagsComponent implements OnInit, OnDestroy {
                 //Valid position to insert: Insert in the correct ordered position:
                 const topTag: TopTag =  { ...tag, paidTaggings: paidTaggings };
                 res.splice(insertionPosition, 0, topTag);
+                if(res.length > numLinesTop) {
+                    //Remove last element of the top tags array:
+                    res.pop();
+                }
             }
             //No position found: But check if we still have space to put one more tag:
             else if(res.length < numLinesTop) {
@@ -147,8 +146,8 @@ export class TopTagsComponent implements OnInit, OnDestroy {
         return res;
     }
 
-    get tags() {
-        return this._tags;
+    get tags$() {
+        return this._tags$;
     }
 
     get dataSource() {
@@ -166,4 +165,11 @@ export class TopTagsComponent implements OnInit, OnDestroy {
         this.toSelectTag.next(tag);
     }
 
+    changeTopTagsToggle() {
+        console.debug('changeTopTagsToggle');
+        if(this._numLinesTop == 2) {
+            this.numLinesTop = 10;
+        }
+        else this.numLinesTop = 2;
+    }
 }

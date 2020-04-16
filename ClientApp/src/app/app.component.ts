@@ -57,6 +57,7 @@ export class AppComponent {
   tagOptions: ReplaySubject<Tag[]>;
   filteredOptions: Observable<Tag[]>;
     private _terminateNameRetrieval: Subject<void>;
+    private _numLinesTop: number;
 
   constructor(private ethStore: Store<fromEth.AppState>,
               private taggedContractStore: Store<fromTagMainContract.AppState>,
@@ -162,6 +163,10 @@ export class AppComponent {
 
     get currentRemoveTaggingData() {
         return this._currentRemoveTaggingData;
+    }
+
+    get numLinesTop(): number {
+        return this._numLinesTop;
     }
 
     ngOnInit() {
