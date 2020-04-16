@@ -48,10 +48,14 @@ export class TopTagsComponent implements OnInit, OnDestroy {
 
     private _freeCreatorTaggingsBN;
 
+    private static readonly POSSIBLE_TOP_VALUES = [ 10, 100 ];
+
+    private _indexTopValues = 0;
+
     constructor(private taggedContractStore: Store<fromTagMainContract.AppState>, //NgRx
                 private mainContractService: MainContractService, //Akita
                 private cd: ChangeDetectorRef) {
-        this._numLinesTop = 2; //Start with top 10, by default!
+        this._numLinesTop = TopTagsComponent.POSSIBLE_TOP_VALUES[0]; //Start with top 10, by default!
         this._tags$ = of([]);
         this._terminate = new Subject();
         this._freeCreatorTaggingsBN = mainContractService.createBigNumber(TagContractService.FREE_CREATOR_TAGGINGS);
@@ -165,11 +169,18 @@ export class TopTagsComponent implements OnInit, OnDestroy {
         this.toSelectTag.next(tag);
     }
 
+    /*
+        returns the next possible value for the Top XXX
+     */
+    get labelTopTagsToggle(): string {
+        //Next possible value:
+        const nextTopValue = (this._indexTopValues + 1) % TopTagsComponent.POSSIBLE_TOP_VALUES.length;
+        return 'Top ' + TopTagsComponent.POSSIBLE_TOP_VALUES[nextTopValue];
+    }
+
     changeTopTagsToggle() {
         console.debug('changeTopTagsToggle');
-        if(this._numLinesTop == 2) {
-            this.numLinesTop = 10;
-        }
-        else this.numLinesTop = 2;
+        this._indexTopValues = (this._indexTopValues + 1) % TopTagsComponent.POSSIBLE_TOP_VALUES.length;
+        this.numLinesTop = TopTagsComponent.POSSIBLE_TOP_VALUES[this._indexTopValues];
     }
 }
