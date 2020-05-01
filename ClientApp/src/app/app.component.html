@@ -2,12 +2,12 @@
 	@2019 FC. All rights reserved.
 -->
 
-<div class="header">
+<div class="header" *appHideExtraInfo>
   <a routerLink="/home">Home</a>
   <a routerLink="/info">Info</a>
 </div>
 
-<mat-divider></mat-divider>
+<mat-divider *appHideExtraInfo></mat-divider>
 
 <mat-grid-list cols="1" rowHeight="6em">
   <mat-grid-tile>
@@ -52,18 +52,19 @@
 
 <br/><br/><br/><br/>
 
-<app-admin-control-panel></app-admin-control-panel>
+<app-admin-control-panel *appHideExtraInfo></app-admin-control-panel>
 
-<br/><br/><br/><br/>
+<div *appHideExtraInfo>
+    <br/><br/><br/><br/>
 
-<button mat-raised-button (click)="trackTaggingInTag2()" >Test Event Listeners</button>
-<button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
-<button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>
-<button mat-raised-button type="button" (click)="connectEthereumConsult()" >Connect Ethernet Cons.</button>
-<button mat-raised-button type="button" (click)="testObservers()" >Test Observ.</button>
+    <button mat-raised-button (click)="trackTaggingInTag2()" >Test Event Listeners</button>
+    <button mat-raised-button (click)="connectEthereum()" >Connect Ethernet</button>
+    <button mat-raised-button type="button" (click)="connectTagMainContract()" >Get init values Tag Main Contract</button>
+    <button mat-raised-button type="button" (click)="connectEthereumConsult()" >Connect Ethernet Cons.</button>
+    <button mat-raised-button type="button" (click)="testObservers()" >Test Observ.</button>
+</div>
 
-
-<div class="section section--tag">
+<div *appHideExtraInfo class="section section--tag">
     <br/>
     <span>Tagging Cost: {{taggingCost$ | async | weiToEther }}<span *ngIf="(taggingCost$ | async)"> Eth</span></span><br/>
     <span>Tagging By Creator Cost: {{taggingByCreatorCost$ | async | weiToEther }}<span *ngIf="(taggingByCreatorCost$ | async)">  Eth</span></span><br/>
@@ -72,12 +73,12 @@
 </div>
 
 
-<div class="section section--tag">
+<div *appHideExtraInfo class="section section--tag">
     <br/>
     <div *ngFor="let userNotif of userNotifications$ | async"  >{{userNotif.uid}} - {{userNotif.type}} - {{userNotif.msg}}</div>
 </div>
 
-<div class="section section--tag">
+<div *appHideExtraInfo class="section section--tag">
     <br/>
     Notification 2:
     <br/>
@@ -86,7 +87,7 @@
 
 <h1>&nbsp;</h1><h1>&nbsp;</h1><h1>&nbsp;</h1>
 
-<div class="section section--tag">
+<div *appHideExtraInfo class="section section--tag">
   <h2>Tag Address</h2>
   <!-- NGX SELECT: Autocomplete -->
   <span>Tag'em (all) </span><span>Create (new) </span><span>Remov'em (your)</span>
@@ -106,7 +107,7 @@
   <button>Tag Someone</button>
 </div>
 
-<div class="section section--tag-create">
+<div *appHideExtraInfo class="section section--tag-create">
   <h2>Tag Create</h2>
   <!-- NGX SELECT: Autocomplete -->
   <label for="">Tag Name *</label>
@@ -121,7 +122,7 @@
   <button>Create Tag</button>
 </div>
 
-<div class="section section--tag-remove">
+<div *appHideExtraInfo class="section section--tag-remove">
   <h2>Tag Remove</h2>
   <!-- NGX SELECT: Autocomplete -->
   <label for="">Tag Name *</label>
@@ -157,7 +158,7 @@
 
 
 
-<div class="section section--tag-info">
+<div *appHideExtraInfo class="section section--tag-info">
   <h2>TAGS CREATED BY YOU (yours)</h2>
   <table id="tagsCreatedByUserTable">
     <tbody>
@@ -208,7 +209,7 @@
 
 
 
-<div class="section section--top-10">
+<div *appHideExtraInfo class="section section--top-10">
   <h2>TOP 10</h2>
   <table id="top10TagsTable">
     <tbody>
@@ -236,13 +237,13 @@
   </table>
 </div>
 
-<div class="section section--how">
+<div *appHideExtraInfo class="section section--how">
   <h2>HOW IT WORKS</h2>
   infographics
   video
 </div>
 
-<div class="section section--about">
+<div *appHideExtraInfo class="section section--about">
   <h2>ABOUT ETH</h2>
   <p>Created in 2015, rocking the then simple world of cryptocurrencies, Ethereum brings programmable money to the center stage. The first to make available Turing complete smart contracts, it allows its users to build their own currencies, financial systems and other applications.</p>
   <p>With this, and the support of a big community (developers, tool makers, financial institutions, etc.), a lot of tools were developed to allow normal users the ability to check their wallets, interact with contracts and make their own contracts. These tools mostly support also the ERC20 Token Standard, created to make available a standard for interaction with Tokens created on the Ethereum network.</p>

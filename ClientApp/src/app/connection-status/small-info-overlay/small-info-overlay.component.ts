@@ -12,7 +12,7 @@ export class InfoData {
 })
 export class SmallInfoOverlayComponent implements OnInit {
 
-  constructor(private readonly data: InfoData) { }
+  constructor(readonly data: InfoData) { }
 
   ngOnInit() {
   }

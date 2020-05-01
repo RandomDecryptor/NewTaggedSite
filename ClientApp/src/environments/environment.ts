@@ -4,9 +4,10 @@
 
 export const environment = {
   production: false,
+  extraInfo: true,
   taggedContractInfo: {
-      //contractAddress: '0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe', //Ropsten Test Network
-      contractAddress: '0xdBaF944889A03715a9BC26590899109cb6dA134b', //Ganache Local Network
+      contractAddress: '0x0abd22a6c3f56d1ed0ad441db9be08291fa7cafe', //Ropsten Test Network
+      //contractAddress: '0xdBaF944889A03715a9BC26590899109cb6dA134b', //Ganache Local Network
       contractFirstBlock: 0
   },
   externals: {

@@ -28,35 +28,36 @@ const initialState: State = {
 };
 
 
-export const reducer = (state = initialState, action: ethActions.EthActionsUnion): State => {
-    switch (action.type) {
+//export const reducer = (state = initialState, action: ethActions.EthActionsUnion): State => {
+export function reducer(state = initialState, action: ethActions.EthActionsUnion): State {
+        switch (action.type) {
 
-        case (ethActions.ActionTypes.INIT_ETH_SUCCESS): {
-            return {...state, connectionStatus: true};
+            case (ethActions.ActionTypes.INIT_ETH_SUCCESS): {
+                return {...state, connectionStatus: true};
+            }
+            case (ethActions.ActionTypes.INIT_ETH_CONSULT_SUCCESS): {
+                return {...state, connectionConsultStatus: true};
+            }
+            case (ethActions.ActionTypes.CHECK_ETH_SUCCESS): {
+                return {...state, connectionStatus: action.payload};
+            }
+            case (ethActions.ActionTypes.GET_ACCOUNTS_SUCCESS): {
+                return {...state, accounts:action.payload, defaultAccount: (action.payload && action.payload.length) ? action.payload[0] : null };
+            }
+            case (ethActions.ActionTypes.SET_DEFAULT_ACCOUNT_SUCCESS): {
+                return {...state, defaultAccount: action.payload };
+            }
+            case (ethActions.ActionTypes.GET_CURRENT_BALANCE_SUCCESS): {
+                return {...state, balance: action.payload};
+            }
+            case (ethActions.ActionTypes.ETH_ERROR): {
+                console.error('Got error:', action.payload);
+                return state;
+            }
+            default: {
+                return state;
+            }
         }
-        case (ethActions.ActionTypes.INIT_ETH_CONSULT_SUCCESS): {
-            return {...state, connectionConsultStatus: true};
-        }
-        case (ethActions.ActionTypes.CHECK_ETH_SUCCESS): {
-            return {...state, connectionStatus: action.payload};
-        }
-        case (ethActions.ActionTypes.GET_ACCOUNTS_SUCCESS): {
-            return {...state, accounts:action.payload, defaultAccount: (action.payload && action.payload.length) ? action.payload[0] : null };
-        }
-        case (ethActions.ActionTypes.SET_DEFAULT_ACCOUNT_SUCCESS): {
-            return {...state, defaultAccount: action.payload };
-        }
-        case (ethActions.ActionTypes.GET_CURRENT_BALANCE_SUCCESS): {
-            return {...state, balance: action.payload};
-        }
-        case (ethActions.ActionTypes.ETH_ERROR): {
-            console.error('Got error:', action.payload);
-            return state;
-        }
-        default: {
-            return state;
-        }
-    }
 };
 
 // add new state slice

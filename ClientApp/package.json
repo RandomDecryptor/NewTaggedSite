@@ -6,6 +6,8 @@
     "dev": "ng serve --open --hmr --port 4900",
     "start": "ng serve",
     "build": "ng build",
+    "buildProd": "ng build --prod=\"true\"",
+    "buildProdWithSourceMaps": "node --max_old_space_size=8192 \"./node_modules/@angular/cli/bin/ng\" build --prod=\"true\"",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

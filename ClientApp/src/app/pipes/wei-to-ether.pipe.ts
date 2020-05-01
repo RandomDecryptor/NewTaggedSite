@@ -14,6 +14,8 @@ export class WeiToEtherPipe implements PipeTransform {
         if(!value || (typeof value === "string" && (value as string).length == 0 )) return value;
         if(!format)
             format = 'ether'; //By default, convert to Ether!
+        //force conversion to string if needed:
+        value = "" + value;
         return this.web3.utils.fromWei(value, format);
     }
 

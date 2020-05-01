@@ -81,23 +81,23 @@ export class AppComponent {
 
     static readonly debounceTimeCreationTagButton = 1000;
 
-    private taggingCost$: Observable<string>;
+    taggingCost$: Observable<string>;
 
-    private taggingByCreatorCost$: Observable<string>;
+    taggingByCreatorCost$: Observable<string>;
 
-    private tagCreationCost$: Observable<string>;
+    tagCreationCost$: Observable<string>;
 
-    private tagTransferCost$: Observable<string>;
+    tagTransferCost$: Observable<string>;
 
     private tags: Tag[]; //Not Observable here, because we want the tags available at the moment, and not await for them or subscribe to them!
 
-    private tags$: Observable<Tag[]>;
+    tags$: Observable<Tag[]>;
 
-    private ownTags$: Observable<Tag[]>;
+    ownTags$: Observable<Tag[]>;
 
-    private userNotifications$: Observable<UserNotif[]>;
+    userNotifications$: Observable<UserNotif[]>;
 
-    private notifications$: Observable<UsrNotification[]>;
+    notifications$: Observable<UsrNotification[]>;
 
     private _creationAvailable = false;
 

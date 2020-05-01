@@ -39,7 +39,8 @@ const initialState: State = {
 };
 
 
-export const reducer = (state = initialState, action: tagMainContractActions.TagMainContractUnion): State => {
+//export const reducer = (state = initialState, action: tagMainContractActions.TagMainContractUnion): State => {
+export function reducer(state = initialState, action: tagMainContractActions.TagMainContractUnion): State {
     switch (action.type) {
 
         case (tagMainContractActions.ActionTypes.GET_TAGGING_COST_SUCCESS): {
